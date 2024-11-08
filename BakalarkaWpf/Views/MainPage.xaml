@@ -1,0 +1,37 @@
+﻿<Page 
+    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"  
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:properties="clr-namespace:BakalarkaWpf.Properties"
+    xmlns:PdfViewer="clr-namespace:Syncfusion.Windows.PdfViewer;assembly=Syncfusion.PdfViewer.WPF"
+    x:Class="BakalarkaWpf.Views.MainPage"
+    mc:Ignorable="d"
+    d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <!-- Add your text block here -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200px"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+            <syncfusion:ButtonAdv Label="Load file" FontWeight="Bold" SmallIcon="{x:Null}" 
+                                  Padding="5" Margin="10" CornerRadius="15"
+                                  FontSize="20" Click="LoadButtonClick"/>
+
+        </StackPanel>
+        <Grid Grid.Column="1">
+            <PdfViewer:PdfDocumentView 
+                HorizontalAlignment="Center" VerticalAlignment="Top" 
+                Name="PDFView"/>
+            <TextBlock
+                FontSize="20" Foreground="Gray" Name="FileMessage"
+                HorizontalAlignment="Center" VerticalAlignment="Center" 
+                >
+                No pdf file chosen
+            </TextBlock>
+        </Grid>
+
+    </Grid>
+</Page>
