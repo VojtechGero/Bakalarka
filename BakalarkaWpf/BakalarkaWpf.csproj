@@ -15,6 +15,9 @@
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OCR\OCR.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Syncfusion.Licensing">
       <HintPath>..\..\..\Syncfusion\Essential Studio\WPF\27.1.48\precompiledassemblies\net8.0\Syncfusion.Licensing.dll</HintPath>
     </Reference>

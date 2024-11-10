@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="BakalarkaWpf.Views.UserControls.FolderTreeViewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BakalarkaWpf.Views.UserControls"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <syncfusion:SfTreeView x:Name="TreeView"
+                               ItemsSource="{Binding RootFolder.Items, ElementName=FolderTreeView}"
+                               ChildPropertyName="Items"
+                               SelectionChanged="TreeView_SelectionChanged">
+
+            <!-- Folder Template -->
+            <syncfusion:SfTreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type local:FolderItem}"
+                                          ItemsSource="{Binding Items}">
+                    <TextBlock Text="{Binding Name}"
+                               FontWeight="Bold"  
+                               FontSize="14" />
+                </HierarchicalDataTemplate>
+            </syncfusion:SfTreeView.ItemTemplate>
+
+            <!-- File Template -->
+            <syncfusion:SfTreeView.Resources>
+                <DataTemplate DataType="{x:Type local:FileItem}">
+                    <TextBlock Text="{Binding Name}"
+                               FontWeight="Normal" 
+                               FontSize="12" />
+                </DataTemplate>
+            </syncfusion:SfTreeView.Resources>
+        </syncfusion:SfTreeView>
+    </Grid>
+</UserControl>

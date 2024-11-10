@@ -1,10 +1,6 @@
 ﻿using BakalarkaWpf.ViewModels;
-using Syncfusion.Pdf.Parsing;
 using System;
-using System.Drawing;
-using System.IO;
 using System.Windows;
-using Tesseract;
 using Page = System.Windows.Controls.Page;
 
 namespace BakalarkaWpf.Views;
@@ -15,6 +11,16 @@ public partial class MainPage : Page
     {
         InitializeComponent();
         DataContext = viewModel;
+
+        FolderTreeControl.LoadFolderStructure("./data");
+        FolderTreeControl.PdfFileClicked += FolderTreeControl_PdfFileClicked;
+    }
+
+    private void FolderTreeControl_PdfFileClicked(object sender, string filePath)
+    {
+        PDFView.Load(filePath);
+        FileMessage.Visibility = System.Windows.Visibility.Hidden;
+        PerformOcrOnPdf(filePath);
     }
 
     private void LoadButtonClick(object sender, System.Windows.RoutedEventArgs e)
@@ -36,43 +42,14 @@ public partial class MainPage : Page
     {
         try
         {
-            // Load the PDF document
-            PdfLoadedDocument loadedDocument = new PdfLoadedDocument(pdfFilePath);
-            string ocrResultText = "";
-
-            // Set up Tesseract OCR engine (adjust paths accordingly)
-            string tessDataPath = @"D:\NET\Tessdata\tessdata"; // Example: "tessdata"
-            using var ocrEngine = new TesseractEngine(tessDataPath, "ces", EngineMode.Default);
-
-            // Loop through each page
-            for (int i = 0; i < loadedDocument.Pages.Count; i++)
-            {
-                using (var pageImage = loadedDocument.ExportAsImage(i))
-                {
-                    // Convert Syncfusion page image to Bitmap for Tesseract
-                    using (Bitmap bitmap = new Bitmap(pageImage))
-                    {
-                        using var pix = ConvertBitmapToPix(bitmap);
-                        using var page = ocrEngine.Process(pix);
-                        ocrResultText += page.GetText();
-                    }
-                }
-            }
-
-            // Display OCR result
-            Clipboard.SetText(ocrResultText);
-            MessageBox.Show("copied to clipboard");
+            string ocr = Services.OcrService.RunOcrOnPdf(pdfFilePath);
+            OcrOutput.Text = ocr;
+            OcrOutput.Width = Double.NaN;
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error performing OCR: {ex.Message}");
+            MessageBox.Show(ex.Message);
+            Clipboard.SetText(ex.Message);
         }
-    }
-    private Pix ConvertBitmapToPix(Bitmap bitmap)
-    {
-        using var ms = new MemoryStream();
-        bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-        ms.Position = 0;
-        return Pix.LoadFromMemory(ms.ToArray());
     }
 }
