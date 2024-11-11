@@ -44,7 +44,8 @@ public partial class MainPage : Page
         {
             string ocr = Services.OcrService.RunOcrOnPdf(pdfFilePath);
             OcrOutput.Text = ocr;
-            OcrOutput.Width = Double.NaN;
+            OcrOutput.Width = double.NaN;
+            Splitter.Width = 5;
         }
         catch (Exception ex)
         {
