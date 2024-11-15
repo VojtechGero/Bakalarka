@@ -25,7 +25,7 @@
                                   FontSize="20" Click="LoadButtonClick"/>
             <local:FolderTreeViewControl x:Name="FolderTreeControl" Height="auto"/>
         </StackPanel>
-        <Grid Grid.Column="1">
+        <Grid Grid.Column="1" Name="CenterSegment">
             <PdfViewer:PdfDocumentView 
                 HorizontalAlignment="Center" VerticalAlignment="Top" 
                 Name="PDFView"/>

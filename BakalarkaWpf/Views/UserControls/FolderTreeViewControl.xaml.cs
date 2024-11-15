@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -12,6 +13,7 @@ namespace BakalarkaWpf.Views.UserControls;
 public partial class FolderTreeViewControl : UserControl
 {
     public event EventHandler<string> PdfFileClicked;
+    private string workingFolder;
     public FolderTreeViewControl()
     {
         InitializeComponent();
@@ -28,9 +30,20 @@ public partial class FolderTreeViewControl : UserControl
         set { SetValue(RootFolderProperty, value); }
     }
 
+    public void Update()
+    {
+        if (!Directory.Exists(workingFolder))
+        {
+            Directory.CreateDirectory(workingFolder);
+        }
+        RootFolder = GetFolderStructure(workingFolder);
+        TreeView.ItemsSource = RootFolder.Items;
+    }
+
     // Method to load the folder structure
     public void LoadFolderStructure(string path)
     {
+        this.workingFolder = path;
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
@@ -51,12 +64,11 @@ public partial class FolderTreeViewControl : UserControl
         foreach (var dir in Directory.GetDirectories(path))
         {
             var subFolder = GetFolderStructure(dir);
-            folder.SubFolders.Add(subFolder);       // Add to SubFolders for hierarchy
-            folder.Items.Add(subFolder);            // Add to Items for TreeView display
+            folder.SubFolders.Add(subFolder);
+            folder.Items.Add(subFolder);
         }
 
-        // Add files to the Items collection
-        foreach (var file in Directory.GetFiles(path))
+        foreach (var file in Directory.GetFiles(path).Where(x => x.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)))
         {
             var fileItem = new FileItem
             {
@@ -70,14 +82,11 @@ public partial class FolderTreeViewControl : UserControl
     }
     private void TreeView_SelectionChanged(object sender, Syncfusion.UI.Xaml.TreeView.ItemSelectionChangedEventArgs e)
     {
-        // Get the selected item from the TreeView
         var selectedItem = e.AddedItems[0] as FileItem;
         if (selectedItem != null)
         {
-            // Check if the selected item is a PDF
             if (selectedItem.Path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
             {
-                // Raise the event and pass the file path
                 PdfFileClicked?.Invoke(this, selectedItem.Path);
             }
         }

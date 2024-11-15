@@ -18,22 +18,7 @@ public static class Tesseract
         return ocrResult;
     }
 
-    // Method to convert a base64 string to a Bitmap
-    private static Bitmap ConvertBase64ToBitmap(string base64String)
-    {
-        try
-        {
-            byte[] imageBytes = Convert.FromBase64String(base64String);
-            using (var ms = new System.IO.MemoryStream(imageBytes))
-            {
-                return new Bitmap(ms);
-            }
-        }
-        catch (Exception ex)
-        {
-            return null;
-        }
-    }
+
 
     // Method to perform OCR using Tesseract
     private static string PerformOCR(Bitmap bitmap)
