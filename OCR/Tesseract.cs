@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Text.Json;
 using Tesseract;
 
 namespace OCR;
@@ -35,7 +36,31 @@ public static class Tesseract
                 {
                     // Perform OCR
                     var result = engine.Process(pix);
-                    return result.GetText(); // Return the recognized text
+                    List<OcrText> ocrTexts = new List<OcrText>();
+                    using (var iterator = result.GetIterator())
+                    {
+
+                        iterator.Begin();
+                        do
+                        {
+                            string currentWord = iterator.GetText(PageIteratorLevel.Word);
+                            //do something with bounds 
+                            iterator.TryGetBoundingBox(PageIteratorLevel.Word, out Rect bounds);
+                            ocrTexts.Add(new OcrText()
+                            {
+                                Text = currentWord,
+                                Rectangle = new Rectangle()
+                                {
+                                    Width = bounds.Width,
+                                    Height = bounds.Height,
+                                    X = bounds.X1,
+                                    Y = bounds.Y1,
+                                }
+                            });
+                        }
+                        while (iterator.Next(PageIteratorLevel.Word));
+                    }
+                    return JsonSerializer.Serialize(ocrTexts); // Return the recognized text
                 }
             }
         }
@@ -51,4 +76,10 @@ public static class Tesseract
         ms.Position = 0;
         return Pix.LoadFromMemory(ms.ToArray());
     }
+}
+
+public class OcrText
+{
+    public string Text { get; set; }
+    public Rectangle Rectangle { get; set; }
 }

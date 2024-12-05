@@ -1,11 +1,16 @@
 ﻿using BakalarkaWpf.Models;
+using BakalarkaWpf.Services;
 using BakalarkaWpf.ViewModels;
 using BakalarkaWpf.Views.UserControls;
+using Syncfusion.Pdf.Parsing;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using Page = System.Windows.Controls.Page;
 
 namespace BakalarkaWpf.Views;
@@ -14,6 +19,7 @@ public partial class MainPage : Page
 {
     private string workingForlder = "./data";
     private bool pdfLoaded = false;
+    private OcrOverlayManager _ocrOverlayManager;
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
@@ -44,12 +50,12 @@ public partial class MainPage : Page
         CenterSegment.Children.Add(progressBar);
 
         await Task.Delay(50);
-        string ocr = "";
+        List<OcrPage> ocr = new();
         string jsonFilePath = Path.ChangeExtension(pdfFilePath, ".json");
         if (File.Exists(jsonFilePath))
         {
             Pdf data = JsonSerializer.Deserialize<Pdf>(File.ReadAllText(jsonFilePath));
-            ocr = data.Content;
+            ocr = data.Pages;
         }
         else
         {
@@ -57,17 +63,32 @@ public partial class MainPage : Page
             Pdf newData = new Pdf()
             {
                 Path = pdfFilePath,
-                Content = ocr
+                Pages = ocr
             };
             File.WriteAllText(jsonFilePath, JsonSerializer.Serialize(newData));
         }
-        await PDFView.LoadAsync(pdfFilePath);
-        OcrOutput.Text = ocr;
-        OcrOutput.Width = double.NaN;
+        PdfLoadedDocument doc = new PdfLoadedDocument(pdfFilePath);
+
+        PDFView.Load(doc);
+
+        addOcrOutput(ocr);
         Splitter.Width = 5;
         pdfLoaded = true;
         CenterSegment.Children.Remove(progressBar);
+        _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
+        {
+            Path = pdfFilePath,
+            Pages = ocr
+        });
 
+        // Attach event handlers for overlay updates
+        PDFView.CurrentPageChanged += (s, e) =>
+            _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
+        PDFView.ZoomChanged += (s, e) =>
+            _ocrOverlayManager.UpdateOverlayOnViewChanged();
+
+        // Render initial overlay for first page
+        _ocrOverlayManager.RenderOcrOverlay(1);
     }
     private async void LoadButtonClick(object sender, System.Windows.RoutedEventArgs e)
     {
@@ -97,7 +118,7 @@ public partial class MainPage : Page
         return newPath;
     }
 
-    private string PerformOcrOnPdf(string pdfFilePath)
+    private List<OcrPage> PerformOcrOnPdf(string pdfFilePath)
     {
         try
         {
@@ -112,6 +133,24 @@ public partial class MainPage : Page
             });
         }
 
-        return "";
+        return null;
+    }
+    public void addOcrOutput(List<OcrPage> pages)
+    {
+        OcrOutput.Children.Clear();
+        foreach (OcrPage page in pages)
+        {
+            string text = string.Join(" ", page.OcrBoxes.Select(x => x.Text));
+            var textBox = new TextBox();
+            textBox.Width = double.NaN;
+            textBox.TextWrapping = TextWrapping.Wrap;
+            textBox.Text = text;
+            textBox.Height = double.NaN;
+            var label = new Label();
+            label.Content = $"Page {page.pageNum}";
+            OcrOutput.Children.Add(label);
+            OcrOutput.Children.Add(textBox);
+        }
+        OcrOutput.Width = double.NaN;
     }
 }

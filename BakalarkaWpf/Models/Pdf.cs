@@ -1,7 +1,9 @@
-﻿namespace BakalarkaWpf.Models;
+﻿using System.Collections.Generic;
+
+namespace BakalarkaWpf.Models;
 
 public class Pdf
 {
     public string Path { get; set; }
-    public string Content { get; set; }
+    public List<OcrPage> Pages { get; set; }
 }
