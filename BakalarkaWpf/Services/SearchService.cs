@@ -73,14 +73,7 @@ public class SearchService
     }
 }
 
-public class SearchResult
-{
-    public string FilePath { get; set; }
-    public int PageNumber { get; set; }
-    public string MatchedText { get; set; }
-    public int MatchIndex { get; set; }
-    public int BoxIndex { get; set; }
-}
+
 
 // Usage
 // var searchService = new SearchService("path_to_folder");
