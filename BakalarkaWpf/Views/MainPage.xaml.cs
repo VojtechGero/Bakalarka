@@ -20,11 +20,12 @@ public partial class MainPage : Page
     private string workingForlder = "./data";
     private bool pdfLoaded = false;
     private OcrOverlayManager _ocrOverlayManager;
+    private SearchService _searchService;
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
-
+        _searchService = new SearchService(workingForlder);
         FolderTreeControl.LoadFolderStructure(workingForlder);
         FolderTreeControl.PdfFileClicked += FolderTreeControl_PdfFileClicked;
     }
@@ -152,5 +153,15 @@ public partial class MainPage : Page
             OcrOutput.Children.Add(textBox);
         }
         OcrOutput.Width = double.NaN;
+    }
+
+    private void Search_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void SearchFiles_Click(object sender, RoutedEventArgs e)
+    {
+
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -26,27 +27,43 @@ public class SearchService
         foreach (var file in jsonFiles)
         {
             var jsonContent = await File.ReadAllTextAsync(file);
+            string[] queryWords = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             var pdf = JsonSerializer.Deserialize<Pdf>(jsonContent);
 
             if (pdf == null) continue;
 
             foreach (var page in pdf.Pages)
             {
-                foreach (var box in page.OcrBoxes)
+                // Combine all text from boxes into a single searchable stream
+                var boxTexts = page.OcrBoxes.Select(b => b.Text ?? string.Empty).ToList();
+                string combinedText = string.Join(" ", boxTexts);
+
+                // Search for the query in the combined text
+                int matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), StringComparison.OrdinalIgnoreCase);
+
+                if (matchIndex >= 0)
                 {
-                    if (box.Text != null)
+                    // Map matchIndex back to the specific boxes
+                    int currentCharIndex = 0;
+
+                    for (int i = 0; i < boxTexts.Count; i++)
                     {
-                        int matchIndex = box.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase);
-                        if (matchIndex >= 0)
+                        string boxText = boxTexts[i];
+                        if (matchIndex >= currentCharIndex && matchIndex < currentCharIndex + boxText.Length)
                         {
+                            // The match starts in this box
                             results.Add(new SearchResult
                             {
                                 FilePath = pdf.Path,
                                 PageNumber = page.pageNum,
-                                MatchedText = box.Text,
-                                MatchIndex = matchIndex
+                                MatchedText = combinedText.Substring(matchIndex, query.Length),
+                                MatchIndex = matchIndex,
+                                BoxIndex = i // Include the index of the box where the match starts
                             });
+                            break; // Stop after finding the first match
                         }
+
+                        currentCharIndex += boxText.Length + 1; // +1 for the space added during concatenation
                     }
                 }
             }
@@ -62,6 +79,7 @@ public class SearchResult
     public int PageNumber { get; set; }
     public string MatchedText { get; set; }
     public int MatchIndex { get; set; }
+    public int BoxIndex { get; set; }
 }
 
 // Usage

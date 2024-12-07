@@ -20,10 +20,15 @@
         </Grid.ColumnDefinitions>
         
         <StackPanel Grid.Column="0">
+            <syncfusion:ButtonAdv Label="Search" FontWeight="Bold" SmallIcon="{x:Null}" 
+                      Padding="5" Margin="10" CornerRadius="15"
+                      FontSize="20" Click="Search_Click"/>
             <syncfusion:ButtonAdv Label="Load file" FontWeight="Bold" SmallIcon="{x:Null}" 
                                   Padding="5" Margin="10" CornerRadius="15"
                                   FontSize="20" Click="LoadButtonClick"/>
-            <local:FolderTreeViewControl x:Name="FolderTreeControl" Height="auto"/>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <local:FolderTreeViewControl x:Name="FolderTreeControl" Height="auto"/>
+            </ScrollViewer>
         </StackPanel>
         <Grid Grid.Column="1" Name="CenterSegment" 
               ScrollViewer.VerticalScrollBarVisibility="Disabled">
