@@ -33,29 +33,41 @@ public class SearchService
             {
                 var boxTexts = page.OcrBoxes.Select(b => b.Text ?? string.Empty).ToList();
                 string combinedText = string.Join(" ", boxTexts);
-
                 int matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), StringComparison.OrdinalIgnoreCase);
 
                 while (matchIndex >= 0)
                 {
                     int currentCharIndex = 0;
+                    int startBoxIndex = -1;
+                    int boxSpan = 0;
+                    int remainingMatchLength = query.Length;
 
                     for (int i = 0; i < boxTexts.Count; i++)
                     {
                         string boxText = boxTexts[i];
                         if (matchIndex >= currentCharIndex && matchIndex < currentCharIndex + boxText.Length)
                         {
+                            startBoxIndex = i;
+                            // Calculate how many boxes the match spans
+                            while (remainingMatchLength > 0 && i < boxTexts.Count)
+                            {
+                                int boxTextLength = boxTexts[i].Length;
+                                remainingMatchLength -= Math.Min(remainingMatchLength, boxTextLength);
+                                boxSpan++;
+                                i++;
+                            }
+
                             results.Add(new SearchResult
                             {
                                 FilePath = pdf.Path,
                                 PageNumber = page.pageNum,
                                 MatchedText = combinedText.Substring(matchIndex, query.Length),
                                 MatchIndex = matchIndex,
-                                BoxIndex = i
+                                BoxIndex = startBoxIndex,
+                                BoxSpan = boxSpan > 1 ? boxSpan - 1 : boxSpan
                             });
                             break;
                         }
-
                         currentCharIndex += boxText.Length + 1;
                     }
 

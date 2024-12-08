@@ -37,6 +37,7 @@
                 HorizontalAlignment="Center" 
                 VerticalAlignment="Top" 
                 Name="PDFView"
+                DocumentLoaded="PDFView_DocumentLoaded"
                 />
 
             <TextBlock

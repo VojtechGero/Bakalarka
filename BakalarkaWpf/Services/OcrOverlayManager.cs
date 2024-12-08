@@ -75,5 +75,24 @@ public class OcrOverlayManager
         RenderOcrOverlay(_pdfView.CurrentPageIndex);
     }
 
+    public void Recolor(SearchResult result)
+    {
 
+        for (int i = 0; i < _overlayCanvas.Children.Count; i++)
+        {
+            if (_overlayCanvas.Children[i] is Rectangle rectangle)
+            {
+                if (i >= result.BoxIndex && i < result.BoxIndex + result.BoxSpan)
+                {
+                    rectangle.Fill = new SolidColorBrush(Colors.Green) { Opacity = 0.2 };
+                    rectangle.Stroke = Brushes.Green;
+                }
+                else
+                {
+                    rectangle.Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 };
+                    rectangle.Stroke = Brushes.Blue;
+                }
+            }
+        }
+    }
 }

@@ -23,6 +23,7 @@ public partial class MainPage : Page
     private OcrOverlayManager _ocrOverlayManager;
     private SearchService _searchService;
     private bool isSearchPanelVisible = false;
+    private bool DocumentLoaded = false;
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
@@ -39,6 +40,7 @@ public partial class MainPage : Page
 
     private async Task LoadFile(string pdfFilePath)
     {
+        if (pdfFilePath == loadedFile) return;
         FileMessage.Visibility = System.Windows.Visibility.Hidden;
         if (loadedFile == "")
         {
@@ -56,6 +58,7 @@ public partial class MainPage : Page
         await Task.Delay(50);
         List<OcrPage> ocr = new();
         string jsonFilePath = Path.ChangeExtension(pdfFilePath, ".json");
+        DocumentLoaded = false;
         if (File.Exists(jsonFilePath))
         {
             Pdf data = JsonSerializer.Deserialize<Pdf>(File.ReadAllText(jsonFilePath));
@@ -74,7 +77,10 @@ public partial class MainPage : Page
         PdfLoadedDocument doc = new PdfLoadedDocument(pdfFilePath);
 
         PDFView.Load(doc);
-
+        await Task.Run(() =>
+        {
+            while (!DocumentLoaded) { }
+        });
         addOcrOutput(ocr);
         Splitter.Width = 5;
         loadedFile = pdfFilePath;
@@ -85,13 +91,11 @@ public partial class MainPage : Page
             Pages = ocr
         });
 
-        // Attach event handlers for overlay updates
         PDFView.CurrentPageChanged += (s, e) =>
             _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
         PDFView.ZoomChanged += (s, e) =>
             _ocrOverlayManager.UpdateOverlayOnViewChanged();
 
-        // Render initial overlay for first page
         _ocrOverlayManager.RenderOcrOverlay(1);
     }
 
@@ -192,7 +196,7 @@ public partial class MainPage : Page
                 resultDisplay.Width = double.NaN;
                 resultDisplay.TextWrapping = TextWrapping.Wrap;
                 resultDisplay.Text = stringResult;
-                resultDisplay.MouseDown += (sender, e) => OpenSearchResults(sender, e, result.FilePath);
+                resultDisplay.MouseDown += (sender, e) => OpenSearchResults(sender, e, result);
                 resultDisplay.MouseEnter += HighlightResult;
                 resultDisplay.MouseLeave += RemoveHighlight;
                 resultDisplay.Cursor = Cursors.Hand;
@@ -214,8 +218,16 @@ public partial class MainPage : Page
         block.Background = System.Windows.Media.Brushes.White;
     }
 
-    private async Task OpenSearchResults(object sender, MouseEventArgs e, string filepath)
+    private async Task OpenSearchResults(object sender, MouseEventArgs e, SearchResult result)
     {
-        await LoadFile(filepath);
+        await LoadFile(result.FilePath);
+        PDFView.GoToPageAtIndex(result.PageNumber - 1);
+        await Task.Delay(50);
+        _ocrOverlayManager.Recolor(result);
+    }
+
+    private void PDFView_DocumentLoaded(object sender, EventArgs args)
+    {
+        DocumentLoaded = true;
     }
 }
