@@ -63,11 +63,8 @@
                              VerticalAlignment="Center" />
                         <syncfusion:ButtonAdv Content="Search" Width="100" 
                                           VerticalAlignment="Center" 
-                                          Click="SearchFiles_Click" />
+                                          Click="SearchFiles_Click" SmallIcon="{x:Null}"/>
                     </StackPanel>
-
-                    <!-- Search results -->
-                    <ListBox Name="SearchResultsList" Margin="5" MaxHeight="400" />
                 </StackPanel>
             </ScrollViewer>
         </Grid>

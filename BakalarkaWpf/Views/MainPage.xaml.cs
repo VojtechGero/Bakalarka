@@ -167,16 +167,13 @@ public partial class MainPage : Page
     {
         if (!isSearchPanelVisible)
         {
-            // Set width to 300px (or desired width)
             SearchPanelColumn.Width = new GridLength(300);
         }
         else
         {
-            // Set width to 0 to hide the panel
             SearchPanelColumn.Width = new GridLength(0);
         }
 
-        // Toggle the visibility state
         isSearchPanelVisible = !isSearchPanelVisible;
     }
 
@@ -196,12 +193,27 @@ public partial class MainPage : Page
                 resultDisplay.TextWrapping = TextWrapping.Wrap;
                 resultDisplay.Text = stringResult;
                 resultDisplay.MouseDown += (sender, e) => OpenSearchResults(sender, e, result.FilePath);
+                resultDisplay.MouseEnter += HighlightResult;
+                resultDisplay.MouseLeave += RemoveHighlight;
+                resultDisplay.Cursor = Cursors.Hand;
                 SearchResultPanel.Children.Add(resultDisplay);
             }
 
         }
 
     }
+
+    private void HighlightResult(object sender, MouseEventArgs e)
+    {
+        TextBlock block = (TextBlock)sender;
+        block.Background = System.Windows.Media.Brushes.Aqua;
+    }
+    private void RemoveHighlight(object sender, MouseEventArgs e)
+    {
+        TextBlock block = (TextBlock)sender;
+        block.Background = System.Windows.Media.Brushes.White;
+    }
+
     private async Task OpenSearchResults(object sender, MouseEventArgs e, string filepath)
     {
         await LoadFile(filepath);

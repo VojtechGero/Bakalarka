@@ -7,9 +7,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BakalarkaWpf.Services;
-
-
-
 public class SearchService
 {
     private readonly string _folderPath;
@@ -34,16 +31,13 @@ public class SearchService
 
             foreach (var page in pdf.Pages)
             {
-                // Combine all text from boxes into a single searchable stream
                 var boxTexts = page.OcrBoxes.Select(b => b.Text ?? string.Empty).ToList();
                 string combinedText = string.Join(" ", boxTexts);
 
-                // Search for the query in the combined text
                 int matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), StringComparison.OrdinalIgnoreCase);
 
-                if (matchIndex >= 0)
+                while (matchIndex >= 0)
                 {
-                    // Map matchIndex back to the specific boxes
                     int currentCharIndex = 0;
 
                     for (int i = 0; i < boxTexts.Count; i++)
@@ -51,30 +45,24 @@ public class SearchService
                         string boxText = boxTexts[i];
                         if (matchIndex >= currentCharIndex && matchIndex < currentCharIndex + boxText.Length)
                         {
-                            // The match starts in this box
                             results.Add(new SearchResult
                             {
                                 FilePath = pdf.Path,
                                 PageNumber = page.pageNum,
                                 MatchedText = combinedText.Substring(matchIndex, query.Length),
                                 MatchIndex = matchIndex,
-                                BoxIndex = i // Include the index of the box where the match starts
+                                BoxIndex = i
                             });
-                            break; // Stop after finding the first match
+                            break;
                         }
 
-                        currentCharIndex += boxText.Length + 1; // +1 for the space added during concatenation
+                        currentCharIndex += boxText.Length + 1;
                     }
+
+                    matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), matchIndex + query.Length, StringComparison.OrdinalIgnoreCase);
                 }
             }
         }
-
         return results;
     }
 }
-
-
-
-// Usage
-// var searchService = new SearchService("path_to_folder");
-// var results = await searchService.SearchAsync("search_term");
