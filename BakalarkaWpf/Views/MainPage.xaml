@@ -19,7 +19,7 @@
             <ColumnDefinition Width="auto" MaxWidth="350px"/>
             <ColumnDefinition Width="0" x:Name="SearchPanelColumn" />
         </Grid.ColumnDefinitions>
-        
+
         <StackPanel Grid.Column="0">
             <syncfusion:ButtonAdv Label="Search" FontWeight="Bold" SmallIcon="{x:Null}" 
                       Padding="5" Margin="10" CornerRadius="15"
@@ -31,25 +31,26 @@
                 <local:FolderTreeViewControl x:Name="FolderTreeControl" Height="auto"/>
             </ScrollViewer>
         </StackPanel>
-        <Grid Grid.Column="1" Name="CenterSegment" 
-              ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                Margin="10">
+        <Grid Name="CenterSegment" Grid.Column="1">
             <PdfViewer:PdfDocumentView
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                Name="PDFView"
-                DocumentLoaded="PDFView_DocumentLoaded"
-                ZoomMode="FitWidth"
-                ShowHorizontalScrollBar="False"
-                />
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Name="PDFView"
+                    DocumentLoaded="PDFView_DocumentLoaded"
+                    ZoomMode="FitWidth"
+                    ShowHorizontalScrollBar="False"
+                    ScrollChanged="PDFView_ScrollChanged"/>
 
             <TextBlock
-                FontSize="20" Foreground="Gray" Name="FileMessage"
-                HorizontalAlignment="Center" VerticalAlignment="Center" 
-                >
-                No pdf file chosen
+                    FontSize="20"
+                    Foreground="Gray"
+                    Name="FileMessage"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    No pdf file chosen
             </TextBlock>
         </Grid>
+
         <Grid Grid.Column="2" >
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>

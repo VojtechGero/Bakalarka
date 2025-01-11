@@ -77,7 +77,6 @@ public partial class MainPage : Page
             File.WriteAllText(jsonFilePath, JsonSerializer.Serialize(newData));
         }
         PdfLoadedDocument doc = new PdfLoadedDocument(pdfFilePath);
-
         addOcrOutput(ocr);
         PDFView.Load(doc);
         await Task.Run(() =>
@@ -91,7 +90,7 @@ public partial class MainPage : Page
         {
             Path = pdfFilePath,
             Pages = ocr
-        });
+        }, doc);
         overlayShowed = true;
 
         PDFView.CurrentPageChanged += (s, e) => _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
@@ -279,4 +278,11 @@ public partial class MainPage : Page
         overlayShowed = !overlayShowed;
     }
 
+    private void PDFView_ScrollChanged(object sender, ScrollChangedEventArgs args)
+    {
+        if (_ocrOverlayManager != null)
+        {
+            _ocrOverlayManager.HandleScroll(args);
+        }
+    }
 }
