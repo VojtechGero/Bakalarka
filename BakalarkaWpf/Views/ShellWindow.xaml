@@ -13,7 +13,8 @@
     mc:Ignorable="d"
     MinWidth="500"
     MinHeight="350"
-    Title="{x:Static properties:Resources.AppDisplayName}">
+    Title="{x:Static properties:Resources.AppDisplayName}"
+    WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}" />

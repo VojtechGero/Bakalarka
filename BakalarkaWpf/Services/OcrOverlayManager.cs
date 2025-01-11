@@ -24,8 +24,7 @@ public class OcrOverlayManager
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch
         };
-
-        var grid = _pdfView.Parent as Grid;
+        var grid = _pdfView.Parent as Grid; //CenterSegment
         if (grid != null)
         {
             var existingOverlay = grid.Children.OfType<Canvas>()
@@ -38,8 +37,25 @@ public class OcrOverlayManager
             grid.Children.Add(_overlayCanvas);
         }
 
-        _pdfView.ZoomChanged += (s, e) => UpdateOverlayOnViewChanged();
         _pdfView.CurrentPageChanged += (s, e) => RenderOcrOverlay(_pdfView.CurrentPageIndex);
+    }
+
+    public void hideOverlay()
+    {
+        if (_overlayCanvas != null)
+        {
+            _overlayCanvas.Visibility = Visibility.Hidden;
+        }
+    }
+
+    public void showOverlay()
+    {
+        if (_overlayCanvas != null)
+        {
+            _overlayCanvas.Visibility = Visibility.Visible;
+            //RenderOcrOverlay(_pdfView.CurrentPageIndex); //not sure if needed...
+        }
+
     }
 
     public void RenderOcrOverlay(int pageNumber)

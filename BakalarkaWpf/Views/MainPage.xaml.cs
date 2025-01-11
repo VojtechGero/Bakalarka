@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using Page = System.Windows.Controls.Page;
 
@@ -18,21 +19,23 @@ namespace BakalarkaWpf.Views;
 
 public partial class MainPage : Page
 {
-    private string workingForlder = "./data";
+    private string workingForlder;
     private string loadedFile = "";
     private OcrOverlayManager _ocrOverlayManager;
     private SearchService _searchService;
     private bool isSearchPanelVisible = false;
     private bool DocumentLoaded = false;
+    private bool overlayShowed = false;
+    private List<SearchResult> searchResults = new List<SearchResult>();
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
+        workingForlder = Path.GetFullPath("./data");
         DataContext = viewModel;
         _searchService = new SearchService(workingForlder);
         FolderTreeControl.LoadFolderStructure(workingForlder);
         FolderTreeControl.PdfFileClicked += FolderTreeControl_PdfFileClicked;
     }
-
     private async void FolderTreeControl_PdfFileClicked(object sender, string filePath)
     {
         await LoadAndOcr(filePath);
@@ -45,7 +48,6 @@ public partial class MainPage : Page
         if (loadedFile == "")
         {
             OcrOutput.Width = 0;
-            Splitter.Width = 0;
             PDFView.Unload();
         }
         var progressBar = new MyProgressBar(Path.GetFileName(pdfFilePath))
@@ -76,13 +78,13 @@ public partial class MainPage : Page
         }
         PdfLoadedDocument doc = new PdfLoadedDocument(pdfFilePath);
 
+        addOcrOutput(ocr);
         PDFView.Load(doc);
         await Task.Run(() =>
         {
             while (!DocumentLoaded) { }
         });
-        addOcrOutput(ocr);
-        Splitter.Width = 5;
+        PDFView.Width = CenterSegment.Width;
         loadedFile = pdfFilePath;
         CenterSegment.Children.Remove(progressBar);
         _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
@@ -90,11 +92,9 @@ public partial class MainPage : Page
             Path = pdfFilePath,
             Pages = ocr
         });
+        overlayShowed = true;
 
-        PDFView.CurrentPageChanged += (s, e) =>
-            _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
-        PDFView.ZoomChanged += (s, e) =>
-            _ocrOverlayManager.UpdateOverlayOnViewChanged();
+        PDFView.CurrentPageChanged += (s, e) => _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
 
         _ocrOverlayManager.RenderOcrOverlay(1);
     }
@@ -151,20 +151,35 @@ public partial class MainPage : Page
     public void addOcrOutput(List<OcrPage> pages)
     {
         OcrOutput.Children.Clear();
+        ShowButton.Visibility = Visibility.Visible;
+        OcrOutput.Visibility = Visibility.Visible;
+        OcrOutput.Width = 300;
         foreach (OcrPage page in pages)
         {
             string text = string.Join(" ", page.OcrBoxes.Select(x => x.Text));
-            var textBox = new TextBox();
-            textBox.Height = double.NaN;
-            textBox.Width = double.NaN;
-            textBox.TextWrapping = TextWrapping.Wrap;
-            var label = new Label();
-            label.Content = $"Page {page.pageNum}";
+            var textBox = new TextBox
+            {
+                Height = double.NaN,
+                Width = double.NaN,
+                TextWrapping = TextWrapping.Wrap,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Top,
+                Text = text
+            };
+            Binding widthBinding = new Binding
+            {
+                Source = OcrOutput,
+                Path = new PropertyPath("ActualWidth"),
+                Mode = BindingMode.OneWay
+            };
+            textBox.SetBinding(TextBox.WidthProperty, widthBinding);
+            var label = new Label
+            {
+                Content = $"Page {page.pageNum}"
+            };
             OcrOutput.Children.Add(label);
             OcrOutput.Children.Add(textBox);
-            textBox.Text = text;
         }
-        OcrOutput.Width = double.NaN;
     }
 
     private void Search_Click(object sender, RoutedEventArgs e)
@@ -187,16 +202,25 @@ public partial class MainPage : Page
         SearchResultPanel.Children.RemoveRange(2, SearchResultPanel.Children.Count);
         if (!string.IsNullOrWhiteSpace(query))
         {
-            var results = await _searchService.SearchAsync(query);
-            foreach (var result in results)
+            searchResults.Clear();
+            searchResults = await _searchService.SearchAsync(query);
+            var fileResults = searchResults
+            .GroupBy(sr => sr.FilePath)
+            .Select(group => new
             {
-                string stringResult = $"File: {result.FilePath}, Page: {result.PageNumber}, MatchIndex {result.MatchIndex}, Box {result.BoxIndex}";
+                FileName = group.Key,
+                OccurrenceCount = group.Count()
+            })
+            .ToList();
+            foreach (var result in fileResults)
+            {
+                string stringResult = $"File: {Path.GetFileName(result.FileName)}, Number of occurrences: {result.OccurrenceCount}";
                 var resultDisplay = new TextBlock();
                 resultDisplay.Height = double.NaN;
                 resultDisplay.Width = double.NaN;
                 resultDisplay.TextWrapping = TextWrapping.Wrap;
                 resultDisplay.Text = stringResult;
-                resultDisplay.MouseDown += (sender, e) => OpenSearchResults(sender, e, result);
+                resultDisplay.MouseDown += (sender, e) => OpenSearchResults(sender, e, result.FileName);
                 resultDisplay.MouseEnter += HighlightResult;
                 resultDisplay.MouseLeave += RemoveHighlight;
                 resultDisplay.Cursor = Cursors.Hand;
@@ -218,16 +242,41 @@ public partial class MainPage : Page
         block.Background = System.Windows.Media.Brushes.White;
     }
 
-    private async Task OpenSearchResults(object sender, MouseEventArgs e, SearchResult result)
+    private async Task OpenSearchResults(object sender, MouseEventArgs e, string Filename)
     {
-        await LoadFile(result.FilePath);
+        await LoadFile(Filename);
+        var resultControl = Container.Children.OfType<SearchResultNavigation>().FirstOrDefault();
+        var relevantResults = searchResults.Where(x => x.FilePath == Filename).ToList();
+        if (resultControl is not null)
+        {
+            Container.Children.Remove(resultControl);
+        }
+        resultControl = new SearchResultNavigation(relevantResults, this);
+        Container.Children.Add(resultControl);
+        await NextResult(relevantResults.First());
+    }
+    public async Task NextResult(SearchResult result)
+    {
         PDFView.GoToPageAtIndex(result.PageNumber - 1);
         await Task.Delay(50);
         _ocrOverlayManager.Recolor(result);
     }
-
     private void PDFView_DocumentLoaded(object sender, EventArgs args)
     {
         DocumentLoaded = true;
     }
+
+    private void ShowButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (overlayShowed)
+        {
+            _ocrOverlayManager.hideOverlay();
+        }
+        else
+        {
+            _ocrOverlayManager.showOverlay();
+        }
+        overlayShowed = !overlayShowed;
+    }
+
 }
