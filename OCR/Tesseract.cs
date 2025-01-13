@@ -5,6 +5,7 @@ using Tesseract;
 namespace OCR;
 public static class Tesseract
 {
+
     public static string UseTesseract(Bitmap bitmap)
     {
 
@@ -78,8 +79,3 @@ public static class Tesseract
     }
 }
 
-public class OcrText
-{
-    public string Text { get; set; }
-    public Rectangle Rectangle { get; set; }
-}
