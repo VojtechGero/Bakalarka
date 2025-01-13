@@ -2,35 +2,38 @@
 using Azure.AI.DocumentIntelligence;
 using System.Drawing;
 using System.Text.Json;
+using Tesseract;
 
 namespace OCR;
 
 public static class Azure
 {
-    public static async Task<string> UseAzure(string filePath)
+    public static async Task<string> UseAzure(Bitmap bitmap)
     {
-        var ocrResult = await PerformOCR(filePath);
+        var ocrResult = await PerformOCR(bitmap);
 
         return ocrResult;
     }
-    public static async Task<string> PerformOCR(string pdfPath)
+    public static async Task<string> PerformOCR(Bitmap bitmap)
     {
         string apiKey = @"";
         string path = @"https://bakalarkaocr.cognitiveservices.azure.com";
 
         List<OcrPage> pages = new();
-        using (FileStream fileStream = new FileStream(pdfPath, FileMode.Open))
+        using (var ms = new MemoryStream())
         {
+            bitmap.Save(ms, format: System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
             var client = new DocumentIntelligenceClient(new Uri(path), new AzureKeyCredential(apiKey));
             var token = CancellationToken.None;
-            Operation<AnalyzeResult> operation = await client.AnalyzeDocumentAsync(WaitUntil.Completed, "prebuilt-layout", BinaryData.FromStream(fileStream));
+            Operation<AnalyzeResult> operation = await client.AnalyzeDocumentAsync(WaitUntil.Completed, "prebuilt-layout", BinaryData.FromStream(ms));
             AnalyzeResult result = operation.Value;
 
+            List<OcrBox> ocrTexts = new List<OcrBox>();
             foreach (DocumentPage page in result.Pages)
             {
                 float height = (float)page.Height;
                 float width = (float)page.Width;
-                List<OcrBox> ocrTexts = new List<OcrBox>();
                 for (int i = 0; i < page.Lines.Count; i++)
                 {
 
@@ -42,16 +45,21 @@ public static class Azure
                     });
 
                 }
-                pages.Add(new OcrPage()
-                {
-                    OcrBoxes = ocrTexts,
-                    pageNum = page.PageNumber,
-                });
             }
+            string output = JsonSerializer.Serialize(ocrTexts);
+            return output;
         }
-        string output = JsonSerializer.Serialize(pages);
-        return output;
+
     }
+
+    private static Pix ConvertBitmapToPix(Bitmap bitmap)
+    {
+        using var ms = new MemoryStream();
+        bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+        ms.Position = 0;
+        return Pix.LoadFromMemory(ms.ToArray());
+    }
+
     private static Rectangle GetBoundingRectangle(List<float> polygon, float pageWidth, float pageHeight)
     {
         if (polygon.Count % 2 != 0)
@@ -71,13 +79,10 @@ public static class Azure
             if (x > maxX) maxX = x;
             if (y > maxY) maxY = y;
         }
-        float scaleX = 100 / pageWidth;
-        float scaleY = 100 / pageHeight;
-        float scale = scaleX * scaleY;
-        int scaledX = (int)(minX * scale);
-        int scaledY = (int)(minY * scale);
-        int scaledWidth = (int)((maxX - minX) * scale);
-        int scaledHeight = (int)((maxY - minY) * scale);
+        int scaledX = (int)(minX);
+        int scaledY = (int)(minY);
+        int scaledWidth = (int)((maxX - minX));
+        int scaledHeight = (int)((maxY - minY));
         return new Rectangle(scaledX, scaledY, scaledWidth, scaledHeight);
     }
 }
