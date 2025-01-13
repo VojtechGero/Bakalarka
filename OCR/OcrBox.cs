@@ -2,7 +2,7 @@
 
 namespace OCR;
 
-public class OcrText
+public class OcrBox
 {
     public string Text { get; set; }
     public Rectangle Rectangle { get; set; }

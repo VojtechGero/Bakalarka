@@ -17,7 +17,8 @@ public static class Azure
     {
         string apiKey = @"";
         string path = @"https://bakalarkaocr.cognitiveservices.azure.com";
-        List<OcrText> ocrTexts = new List<OcrText>();
+
+        List<OcrPage> pages = new();
         using (FileStream fileStream = new FileStream(pdfPath, FileMode.Open))
         {
             var client = new DocumentIntelligenceClient(new Uri(path), new AzureKeyCredential(apiKey));
@@ -27,23 +28,31 @@ public static class Azure
 
             foreach (DocumentPage page in result.Pages)
             {
+                float height = (float)page.Height;
+                float width = (float)page.Width;
+                List<OcrBox> ocrTexts = new List<OcrBox>();
                 for (int i = 0; i < page.Lines.Count; i++)
                 {
 
                     DocumentLine line = page.Lines[i];
-                    ocrTexts.Add(new OcrText()
+                    ocrTexts.Add(new OcrBox()
                     {
                         Text = line.Content,
-                        Rectangle = GetBoundingRectangle(line.Polygon.ToList())
+                        Rectangle = GetBoundingRectangle(line.Polygon.ToList(), width, height)
                     });
 
                 }
+                pages.Add(new OcrPage()
+                {
+                    OcrBoxes = ocrTexts,
+                    pageNum = page.PageNumber,
+                });
             }
         }
-        string output = JsonSerializer.Serialize(ocrTexts);
+        string output = JsonSerializer.Serialize(pages);
         return output;
     }
-    private static Rectangle GetBoundingRectangle(List<float> polygon)
+    private static Rectangle GetBoundingRectangle(List<float> polygon, float pageWidth, float pageHeight)
     {
         if (polygon.Count % 2 != 0)
         {
@@ -57,12 +66,18 @@ public static class Azure
         {
             float x = polygon[i];
             float y = polygon[i + 1];
-
             if (x < minX) minX = x;
             if (y < minY) minY = y;
             if (x > maxX) maxX = x;
             if (y > maxY) maxY = y;
         }
-        return new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+        float scaleX = 100 / pageWidth;
+        float scaleY = 100 / pageHeight;
+        float scale = scaleX * scaleY;
+        int scaledX = (int)(minX * scale);
+        int scaledY = (int)(minY * scale);
+        int scaledWidth = (int)((maxX - minX) * scale);
+        int scaledHeight = (int)((maxY - minY) * scale);
+        return new Rectangle(scaledX, scaledY, scaledWidth, scaledHeight);
     }
 }

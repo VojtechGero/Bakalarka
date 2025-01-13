@@ -37,7 +37,7 @@ public static class Tesseract
                 {
                     // Perform OCR
                     var result = engine.Process(pix);
-                    List<OcrText> ocrTexts = new List<OcrText>();
+                    List<OcrBox> ocrTexts = new List<OcrBox>();
                     using (var iterator = result.GetIterator())
                     {
 
@@ -47,7 +47,7 @@ public static class Tesseract
                             string currentWord = iterator.GetText(PageIteratorLevel.Word);
                             //do something with bounds 
                             iterator.TryGetBoundingBox(PageIteratorLevel.Word, out Rect bounds);
-                            ocrTexts.Add(new OcrText()
+                            ocrTexts.Add(new OcrBox()
                             {
                                 Text = currentWord,
                                 Rectangle = new Rectangle()

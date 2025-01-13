@@ -68,7 +68,7 @@ public partial class MainPage : Page
         }
         else
         {
-            ocr = await Task.Run(() => PerformOcrOnPdf(pdfFilePath));
+            ocr = await PerformOcrOnPdf(pdfFilePath);
             Pdf newData = new Pdf()
             {
                 Path = pdfFilePath,
@@ -90,7 +90,7 @@ public partial class MainPage : Page
         {
             Path = pdfFilePath,
             Pages = ocr
-        }, doc);
+        });
         overlayShowed = true;
 
         PDFView.CurrentPageChanged += (s, e) => _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
@@ -130,7 +130,7 @@ public partial class MainPage : Page
         return newPath;
     }
 
-    private List<OcrPage> PerformOcrOnPdf(string pdfFilePath)
+    private Task<List<OcrPage>> PerformOcrOnPdf(string pdfFilePath)
     {
         try
         {
@@ -282,7 +282,7 @@ public partial class MainPage : Page
     {
         if (_ocrOverlayManager != null)
         {
-            _ocrOverlayManager.HandleScroll(args);
+            //_ocrOverlayManager.HandleScroll(args);
         }
     }
 }
