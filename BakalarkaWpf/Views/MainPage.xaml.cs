@@ -21,18 +21,19 @@ public partial class MainPage : Page
 {
     private string workingForlder;
     private string loadedFile = "";
+    private string query = "";
     private OcrOverlayManager _ocrOverlayManager;
-    private SearchService _searchService;
+    private ApiSearchService _searchService;
     private bool isSearchPanelVisible = false;
     private bool DocumentLoaded = false;
     private bool overlayShowed = false;
-    private List<SearchResult> searchResults = new List<SearchResult>();
+    private List<FileResults> searchResults = new List<FileResults>();
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
         workingForlder = Path.GetFullPath("./data");
         DataContext = viewModel;
-        _searchService = new SearchService(workingForlder);
+        _searchService = new ApiSearchService();
         FolderTreeControl.LoadFolderStructure(workingForlder);
         FolderTreeControl.PdfFileClicked += FolderTreeControl_PdfFileClicked;
     }
@@ -68,7 +69,7 @@ public partial class MainPage : Page
         }
         else
         {
-            ocr = await Task.Run(() => PerformOcrOnPdf(pdfFilePath));
+            ocr = await PerformOcrOnPdf(pdfFilePath);
             Pdf newData = new Pdf()
             {
                 Path = pdfFilePath,
@@ -90,7 +91,7 @@ public partial class MainPage : Page
         {
             Path = pdfFilePath,
             Pages = ocr
-        }, doc);
+        });
         overlayShowed = true;
 
         PDFView.CurrentPageChanged += (s, e) => _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
@@ -130,7 +131,7 @@ public partial class MainPage : Page
         return newPath;
     }
 
-    private List<OcrPage> PerformOcrOnPdf(string pdfFilePath)
+    private Task<List<OcrPage>> PerformOcrOnPdf(string pdfFilePath)
     {
         try
         {
@@ -197,21 +198,13 @@ public partial class MainPage : Page
 
     private async void SearchFiles_Click(object sender, RoutedEventArgs e)
     {
-        string query = SearchTextBox.Text;
+        query = SearchTextBox.Text;
         SearchResultPanel.Children.RemoveRange(2, SearchResultPanel.Children.Count);
         if (!string.IsNullOrWhiteSpace(query))
         {
             searchResults.Clear();
             searchResults = await _searchService.SearchAsync(query);
-            var fileResults = searchResults
-            .GroupBy(sr => sr.FilePath)
-            .Select(group => new
-            {
-                FileName = group.Key,
-                OccurrenceCount = group.Count()
-            })
-            .ToList();
-            foreach (var result in fileResults)
+            foreach (var result in searchResults)
             {
                 string stringResult = $"File: {Path.GetFileName(result.FileName)}, Number of occurrences: {result.OccurrenceCount}";
                 var resultDisplay = new TextBlock();
@@ -245,7 +238,7 @@ public partial class MainPage : Page
     {
         await LoadFile(Filename);
         var resultControl = Container.Children.OfType<SearchResultNavigation>().FirstOrDefault();
-        var relevantResults = searchResults.Where(x => x.FilePath == Filename).ToList();
+        var relevantResults = await _searchService.GetFileResults(query, Filename);
         if (resultControl is not null)
         {
             Container.Children.Remove(resultControl);
@@ -282,7 +275,7 @@ public partial class MainPage : Page
     {
         if (_ocrOverlayManager != null)
         {
-            _ocrOverlayManager.HandleScroll(args);
+            //_ocrOverlayManager.HandleScroll(args);
         }
     }
 }
