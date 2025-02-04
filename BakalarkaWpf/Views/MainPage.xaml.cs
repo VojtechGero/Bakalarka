@@ -186,13 +186,22 @@ public partial class MainPage : Page
     {
         if (!isSearchPanelVisible)
         {
+            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.Default;
             SearchPanelColumn.Width = new GridLength(300);
+            this.UpdateLayout();
+            this.InvalidateVisual();
+            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         }
         else
         {
+            this.UpdateLayout();
+            this.InvalidateVisual();
+            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.Default;
             SearchPanelColumn.Width = new GridLength(0);
+            this.UpdateLayout();
+            this.InvalidateVisual();
+            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         }
-
         isSearchPanelVisible = !isSearchPanelVisible;
     }
 
@@ -262,20 +271,17 @@ public partial class MainPage : Page
     {
         if (overlayShowed)
         {
-            _ocrOverlayManager.hideOverlay();
+            _ocrOverlayManager.HideOverlay();
         }
         else
         {
-            _ocrOverlayManager.showOverlay();
+            _ocrOverlayManager.ShowOverlay();
         }
         overlayShowed = !overlayShowed;
     }
 
     private void PDFView_ScrollChanged(object sender, ScrollChangedEventArgs args)
     {
-        if (_ocrOverlayManager != null)
-        {
-            //_ocrOverlayManager.HandleScroll(args);
-        }
+        _ocrOverlayManager?.HandleScroll(args);
     }
 }

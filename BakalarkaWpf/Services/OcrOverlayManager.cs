@@ -13,10 +13,14 @@ public class OcrOverlayManager
     private readonly Canvas _overlayCanvas;
     private readonly PdfDocumentView _pdfView;
     private readonly Pdf _pdfDocument;
+    private double _horizontalOffset;
+    private double _verticalOffset;
+
     public OcrOverlayManager(PdfDocumentView pdfView, Pdf pdfDocument)
     {
         _pdfView = pdfView;
         _pdfDocument = pdfDocument;
+
         _overlayCanvas = new Canvas
         {
             IsHitTestVisible = false,
@@ -24,15 +28,16 @@ public class OcrOverlayManager
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch
         };
-        var grid = _pdfView.Parent as Grid; //CenterSegment
+
+        var grid = _pdfView.Parent as Grid;
         if (grid != null)
         {
+            grid.ClipToBounds = false;
             var existingOverlay = grid.Children.OfType<Canvas>()
                 .FirstOrDefault(c => c.Background == Brushes.Transparent);
+
             if (existingOverlay != null)
-            {
                 grid.Children.Remove(existingOverlay);
-            }
 
             grid.Children.Add(_overlayCanvas);
         }
@@ -40,29 +45,23 @@ public class OcrOverlayManager
         _pdfView.CurrentPageChanged += (s, e) => RenderOcrOverlay(_pdfView.CurrentPageIndex);
     }
 
-    public void hideOverlay()
+    public void HideOverlay() => _overlayCanvas.Visibility = Visibility.Hidden;
+
+    public void ShowOverlay()
     {
-        if (_overlayCanvas != null)
-        {
-            _overlayCanvas.Visibility = Visibility.Hidden;
-        }
+        _overlayCanvas.Visibility = Visibility.Visible;
+        RenderOcrOverlay(_pdfView.CurrentPageIndex);
     }
-    public void showOverlay()
-    {
-        if (_overlayCanvas != null)
-        {
-            _overlayCanvas.Visibility = Visibility.Visible;
-            //RenderOcrOverlay(_pdfView.CurrentPageIndex); //not sure if needed...
-        }
-    }
+
     public void RenderOcrOverlay(int pageNumber)
     {
         _overlayCanvas.Children.Clear();
-
         var pageOcr = _pdfDocument.Pages.Find(p => p.pageNum == pageNumber);
         if (pageOcr == null) return;
 
         double zoomFactor = _pdfView.ZoomPercentage / 100.0;
+        //_overlayCanvas.Width = pageOcr.Width * zoomFactor;
+        //_overlayCanvas.Height = pageOcr.Height * zoomFactor;
 
         foreach (var ocrBox in pageOcr.OcrBoxes)
         {
@@ -81,16 +80,30 @@ public class OcrOverlayManager
             ToolTipService.SetToolTip(rectangle, ocrBox.Text);
             _overlayCanvas.Children.Add(rectangle);
         }
+
+        ApplyScrollTransform();
     }
 
-    public void UpdateOverlayOnViewChanged()
+    public void HandleScroll(ScrollChangedEventArgs args)
     {
-        RenderOcrOverlay(_pdfView.CurrentPageIndex);
+        _horizontalOffset = args.HorizontalOffset;
+        _verticalOffset = args.VerticalOffset;
+        ApplyScrollTransform();
     }
+
+    private void ApplyScrollTransform()
+    {
+        _overlayCanvas.RenderTransform = new TranslateTransform
+        {
+            X = -_horizontalOffset,
+            Y = -_verticalOffset
+        };
+    }
+
+    public void UpdateOverlayOnViewChanged() => RenderOcrOverlay(_pdfView.CurrentPageIndex);
 
     public void Recolor(SearchResult result)
     {
-
         for (int i = 0; i < _overlayCanvas.Children.Count; i++)
         {
             if (_overlayCanvas.Children[i] is Rectangle rectangle)
