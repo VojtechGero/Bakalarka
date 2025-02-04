@@ -72,4 +72,65 @@ public class SearchService
         }
         return results;
     }
+    public async Task<List<SearchResult>> SearchFileAsync(string query, string filename)
+    {
+        var results = new List<SearchResult>();
+        var jsonFiles = Directory.EnumerateFiles(_folderPath, "*.json");
+
+        foreach (var file in jsonFiles)
+        {
+            var jsonContent = await File.ReadAllTextAsync(file);
+            string[] queryWords = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var pdf = JsonSerializer.Deserialize<Pdf>(jsonContent);
+
+            if (pdf == null) continue;
+
+            foreach (var page in pdf.Pages)
+            {
+                var boxTexts = page.OcrBoxes.Select(b => b.Text ?? string.Empty).ToList();
+                string combinedText = string.Join(" ", boxTexts);
+                int matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), StringComparison.OrdinalIgnoreCase);
+
+                while (matchIndex >= 0)
+                {
+                    int currentCharIndex = 0;
+                    int startBoxIndex = -1;
+                    int boxSpan = 0;
+                    int remainingMatchLength = query.Length;
+
+                    for (int i = 0; i < boxTexts.Count; i++)
+                    {
+                        string boxText = boxTexts[i];
+                        if (matchIndex >= currentCharIndex && matchIndex < currentCharIndex + boxText.Length)
+                        {
+                            startBoxIndex = i;
+                            // Calculate how many boxes the match spans
+                            while (remainingMatchLength > 0 && i < boxTexts.Count)
+                            {
+                                int boxTextLength = boxTexts[i].Length;
+                                remainingMatchLength -= Math.Min(remainingMatchLength, boxTextLength);
+                                boxSpan++;
+                                i++;
+                            }
+
+                            results.Add(new SearchResult
+                            {
+                                FilePath = pdf.Path,
+                                PageNumber = page.pageNum,
+                                MatchedText = combinedText.Substring(matchIndex, query.Length),
+                                MatchIndex = matchIndex,
+                                BoxIndex = startBoxIndex,
+                                BoxSpan = boxSpan > 1 ? boxSpan - 1 : boxSpan
+                            });
+                            break;
+                        }
+                        currentCharIndex += boxText.Length + 1;
+                    }
+
+                    matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), matchIndex + query.Length, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+        }
+        return results;
+    }
 }
