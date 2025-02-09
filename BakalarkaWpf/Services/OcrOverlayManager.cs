@@ -1,4 +1,5 @@
 ﻿using BakalarkaWpf.Models;
+using Syncfusion.Pdf.Parsing;
 using Syncfusion.Windows.PdfViewer;
 using System.Linq;
 using System.Windows;
@@ -11,25 +12,31 @@ namespace BakalarkaWpf.Services;
 public class OcrOverlayManager
 {
     private readonly Canvas _overlayCanvas;
-    private readonly PdfDocumentView _pdfView;
+    private readonly PdfViewerControl _pdfView;
     private readonly Pdf _pdfDocument;
+    private readonly PdfLoadedDocument _loadedDocument;
     private double _horizontalOffset;
     private double _verticalOffset;
+    private double _totalDocumentHeight;
+    private double _pageGap = 2.2;
+    private Rect _clientRect;
+    private double _viewportWidth;
+    private double _viewportHeight;
 
-    public OcrOverlayManager(PdfDocumentView pdfView, Pdf pdfDocument)
+    public OcrOverlayManager(PdfViewerControl pdfView, Pdf pdfDocument, PdfLoadedDocument loadedDocument)
     {
         _pdfView = pdfView;
         _pdfDocument = pdfDocument;
-
+        _loadedDocument = loadedDocument;
         _overlayCanvas = new Canvas
         {
             IsHitTestVisible = false,
             Background = Brushes.Transparent,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top
         };
-
-        var grid = _pdfView.Parent as Grid;
+        var pdfDocumentView = FindChild<PdfDocumentView>(_pdfView);
+        var grid = pdfDocumentView.Parent as Grid;
         if (grid != null)
         {
             grid.ClipToBounds = false;
@@ -41,8 +48,21 @@ public class OcrOverlayManager
 
             grid.Children.Add(_overlayCanvas);
         }
+        _clientRect = _pdfView.ClientRectangle;
+        _overlayCanvas.Margin = new Thickness(_clientRect.Left, 0, 0, 0);
+        CalculateDocumentHeight();
+        RenderAllPages();
+    }
 
-        _pdfView.CurrentPageChanged += (s, e) => RenderOcrOverlay(_pdfView.CurrentPageIndex);
+    private void CalculateDocumentHeight()
+    {
+        double sum = 0;
+        double zoomFactor = _pdfView.ZoomPercentage / 100.0;
+        for (int i = 0; i < _loadedDocument.Pages.Count; i++)
+        {
+            sum += _loadedDocument.Pages[i].Size.Height * zoomFactor + _pageGap;
+        }
+        _totalDocumentHeight = sum;
     }
 
     public void HideOverlay() => _overlayCanvas.Visibility = Visibility.Hidden;
@@ -50,37 +70,40 @@ public class OcrOverlayManager
     public void ShowOverlay()
     {
         _overlayCanvas.Visibility = Visibility.Visible;
-        RenderOcrOverlay(_pdfView.CurrentPageIndex);
+        RenderAllPages();
     }
 
-    public void RenderOcrOverlay(int pageNumber)
+    private void RenderAllPages()
     {
         _overlayCanvas.Children.Clear();
-        var pageOcr = _pdfDocument.Pages.Find(p => p.pageNum == pageNumber);
-        if (pageOcr == null) return;
-
         double zoomFactor = _pdfView.ZoomPercentage / 100.0;
-        //_overlayCanvas.Width = pageOcr.Width * zoomFactor;
-        //_overlayCanvas.Height = pageOcr.Height * zoomFactor;
-
-        foreach (var ocrBox in pageOcr.OcrBoxes)
+        double verticalOffset = 0;
+        double dpiScale = 2.0;
+        foreach (var page in _pdfDocument.Pages.OrderBy(p => p.pageNum))
         {
-            var rectangle = new Rectangle
+            var pageSize = _loadedDocument.Pages[page.pageNum - 1].Size;
+            double pageHeight = pageSize.Height * dpiScale * zoomFactor;
+
+            foreach (var ocrBox in page.OcrBoxes)
             {
-                Width = ocrBox.Rectangle.Width * zoomFactor,
-                Height = ocrBox.Rectangle.Height * zoomFactor,
-                Stroke = Brushes.Blue,
-                StrokeThickness = 1,
-                Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 }
-            };
+                var rectangle = new Rectangle
+                {
+                    Width = ocrBox.Rectangle.Width * zoomFactor,
+                    Height = ocrBox.Rectangle.Height * zoomFactor,
+                    Stroke = Brushes.Blue,
+                    StrokeThickness = 1,
+                    Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 }
+                };
 
-            Canvas.SetLeft(rectangle, ocrBox.Rectangle.X * zoomFactor);
-            Canvas.SetTop(rectangle, ocrBox.Rectangle.Y * zoomFactor);
+                Canvas.SetLeft(rectangle, ocrBox.Rectangle.X * zoomFactor);
+                Canvas.SetTop(rectangle, verticalOffset + (ocrBox.Rectangle.Y * zoomFactor));
 
-            ToolTipService.SetToolTip(rectangle, ocrBox.Text);
-            _overlayCanvas.Children.Add(rectangle);
+                ToolTipService.SetToolTip(rectangle, ocrBox.Text);
+                _overlayCanvas.Children.Add(rectangle);
+            }
+            verticalOffset += pageHeight; //+ _pageGap;
         }
-
+        _overlayCanvas.Height = verticalOffset;
         ApplyScrollTransform();
     }
 
@@ -88,19 +111,38 @@ public class OcrOverlayManager
     {
         _horizontalOffset = args.HorizontalOffset;
         _verticalOffset = args.VerticalOffset;
+        _viewportWidth = args.ViewportWidth;
+        _viewportHeight = args.ViewportHeight;
         ApplyScrollTransform();
+    }
+
+    public void zoomChanged()
+    {
+        RenderAllPages();
     }
 
     private void ApplyScrollTransform()
     {
+        // Align overlay with PDF content
         _overlayCanvas.RenderTransform = new TranslateTransform
         {
             X = -_horizontalOffset,
             Y = -_verticalOffset
         };
+
+        // Clip to the visible viewport
+        _overlayCanvas.Clip = new RectangleGeometry
+        {
+            Rect = new Rect(_horizontalOffset, _verticalOffset, _viewportWidth, _viewportHeight)
+        };
     }
 
-    public void UpdateOverlayOnViewChanged() => RenderOcrOverlay(_pdfView.CurrentPageIndex);
+    public void UpdateOverlayOnViewChanged()
+    {
+        CalculateDocumentHeight();
+        RenderAllPages();
+    }
+
 
     public void Recolor(SearchResult result)
     {
@@ -120,5 +162,24 @@ public class OcrOverlayManager
                 }
             }
         }
+    }
+    private static T FindChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        if (parent == null) return null;
+
+        int childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < childCount; i++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T result)
+                return result;
+            else
+            {
+                result = FindChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+        }
+        return null;
     }
 }

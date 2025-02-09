@@ -32,6 +32,11 @@ public partial class MainPage : Page
     {
         InitializeComponent();
         workingForlder = Path.GetFullPath("./data");
+        PDFView.ToolbarSettings.ShowZoomTools = false;
+        PDFView.ToolbarSettings.ShowFileTools = false;
+        PDFView.ToolbarSettings.ShowAnnotationTools = false;
+
+        PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         DataContext = viewModel;
         _searchService = new ApiSearchService();
         FolderTreeControl.LoadFolderStructure(workingForlder);
@@ -90,13 +95,13 @@ public partial class MainPage : Page
         _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
         {
             Path = pdfFilePath,
-            Pages = ocr
-        });
+            Pages = ocr,
+        }, doc);
         overlayShowed = true;
 
-        PDFView.CurrentPageChanged += (s, e) => _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
+        //PDFView.CurrentPageChanged += (s, e) => _ocrOverlayManager.RenderOcrOverlay(PDFView.CurrentPageIndex);
 
-        _ocrOverlayManager.RenderOcrOverlay(1);
+        //_ocrOverlayManager.RenderOcrOverlay(1);
     }
 
     private async Task LoadAndOcr(string pdfFilePath)
@@ -186,21 +191,11 @@ public partial class MainPage : Page
     {
         if (!isSearchPanelVisible)
         {
-            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.Default;
             SearchPanelColumn.Width = new GridLength(300);
-            this.UpdateLayout();
-            this.InvalidateVisual();
-            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         }
         else
         {
-            this.UpdateLayout();
-            this.InvalidateVisual();
-            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.Default;
             SearchPanelColumn.Width = new GridLength(0);
-            this.UpdateLayout();
-            this.InvalidateVisual();
-            PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         }
         isSearchPanelVisible = !isSearchPanelVisible;
     }
@@ -283,5 +278,12 @@ public partial class MainPage : Page
     private void PDFView_ScrollChanged(object sender, ScrollChangedEventArgs args)
     {
         _ocrOverlayManager?.HandleScroll(args);
+    }
+
+
+    private void PDFView_ZoomChanged(object sender, Syncfusion.Windows.PdfViewer.ZoomEventArgs args)
+    {
+        PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
+        _ocrOverlayManager?.zoomChanged();
     }
 }
