@@ -35,7 +35,18 @@ public partial class MainPage : Page
         PDFView.ToolbarSettings.ShowZoomTools = false;
         PDFView.ToolbarSettings.ShowFileTools = false;
         PDFView.ToolbarSettings.ShowAnnotationTools = false;
-
+        // Hides the thumbnail icon. 
+        PDFView.ThumbnailSettings.IsVisible = false;
+        // Hides the bookmark icon. 
+        PDFView.IsBookmarkEnabled = false;
+        // Hides the layer icon. 
+        PDFView.EnableLayers = false;
+        // Hides the organize page icon. 
+        PDFView.PageOrganizerSettings.IsIconVisible = false;
+        // Hides the redaction icon. 
+        PDFView.EnableRedactionTool = false;
+        // Hides the form icon. 
+        PDFView.FormSettings.IsIconVisible = false;
         PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         DataContext = viewModel;
         _searchService = new ApiSearchService();
