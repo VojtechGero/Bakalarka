@@ -1,18 +1,16 @@
-﻿using System.IO;
-using System.Reflection;
-using System.Windows;
-using System.Windows.Threading;
-
-using BakalarkaWpf.Contracts.Services;
+﻿using BakalarkaWpf.Contracts.Services;
 using BakalarkaWpf.Contracts.Views;
 using BakalarkaWpf.Models;
 using BakalarkaWpf.Services;
 using BakalarkaWpf.ViewModels;
 using BakalarkaWpf.Views;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.IO;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace BakalarkaWpf
 {
@@ -31,8 +29,8 @@ namespace BakalarkaWpf
 
         public App()
         {
-			// Add your Syncfusion license key for WPF platform with corresponding Syncfusion NuGet version referred in project. For more information about license key see https://help.syncfusion.com/common/essential-studio/licensing/license-key.
-			// Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Add your license key here"); 
+            // Add your Syncfusion license key for WPF platform with corresponding Syncfusion NuGet version referred in project. For more information about license key see https://help.syncfusion.com/common/essential-studio/licensing/license-key.
+            // Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Add your license key here"); 
         }
 
         private async void OnStartup(object sender, StartupEventArgs e)
