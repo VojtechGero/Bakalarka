@@ -81,39 +81,48 @@ public class OcrOverlayManager
         double zoomFactor = _pdfView.ZoomPercentage / 100.0;
         double verticalOffset = 0;
 
-        // Ensure _overlayCanvas is part of the visual tree before getting DPI
-        double dpiScale = VisualTreeHelper.GetDpi(_overlayCanvas).DpiScaleX;
-
         foreach (var page in _pdfDocument.Pages.OrderBy(p => p.pageNum))
         {
-            var pageSize = _loadedDocument.Pages[page.pageNum - 1].Size;
-            // Convert page size to WPF units (if page size is in points)
-            double pageHeight = (pageSize.Height * 96 / 72) * dpiScale * zoomFactor + _pageGap;
+            var pdfPage = _loadedDocument.Pages[page.pageNum - 1];
+            // Convert PDF points to WPF DIPs (1 point = 1.3333 DIPs)
+            double pageHeightDip = pdfPage.Size.Height * 96 / 72;
+
+            // Remove manual DPI scaling - only use zoom factor
+            double renderedPageHeight = pageHeightDip * zoomFactor;
 
             foreach (var ocrBox in page.OcrBoxes)
             {
+                // Convert OCR coordinates to WPF DIPs
+                var box = new Rect(
+                    ocrBox.Rectangle.X,
+                    ocrBox.Rectangle.Y,
+                    ocrBox.Rectangle.Width,
+                    ocrBox.Rectangle.Height
+                );
+
                 var rectangle = new Rectangle
                 {
-                    // Apply both DPI scaling and zoom factor
-                    Width = ocrBox.Rectangle.Width * dpiScale * zoomFactor,
-                    Height = ocrBox.Rectangle.Height * dpiScale * zoomFactor,
+                    Width = box.Width * zoomFactor,
+                    Height = box.Height * zoomFactor,
                     Stroke = Brushes.Blue,
                     StrokeThickness = 1,
                     Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 }
                 };
 
-                // Position the rectangle with DPI and zoom scaling
-                Canvas.SetLeft(rectangle, ocrBox.Rectangle.X * dpiScale * zoomFactor);
-                Canvas.SetTop(rectangle, verticalOffset + (ocrBox.Rectangle.Y * dpiScale * zoomFactor));
+                Canvas.SetLeft(rectangle, box.X * zoomFactor);
+                Canvas.SetTop(rectangle, verticalOffset + (box.Y * zoomFactor));
 
                 ToolTipService.SetToolTip(rectangle, ocrBox.Text);
                 _overlayCanvas.Children.Add(rectangle);
             }
-            verticalOffset += pageHeight; // Accumulate scaled page height
+
+            verticalOffset += renderedPageHeight + _pageGap;
         }
+
         _overlayCanvas.Height = verticalOffset;
         ApplyScrollTransform();
     }
+
 
     public void HandleScroll(ScrollChangedEventArgs args)
     {
@@ -131,18 +140,15 @@ public class OcrOverlayManager
 
     private void ApplyScrollTransform()
     {
-        // Align overlay with PDF content
         _overlayCanvas.RenderTransform = new TranslateTransform
         {
             X = -_horizontalOffset,
             Y = -_verticalOffset
         };
 
-        // Clip to the visible viewport
-        _overlayCanvas.Clip = new RectangleGeometry
-        {
-            Rect = new Rect(_horizontalOffset, _verticalOffset, _viewportWidth, _viewportHeight)
-        };
+        _overlayCanvas.Clip = new RectangleGeometry(
+            new Rect(_horizontalOffset, _verticalOffset, _viewportWidth, _viewportHeight)
+        );
     }
 
     public void UpdateOverlayOnViewChanged()
