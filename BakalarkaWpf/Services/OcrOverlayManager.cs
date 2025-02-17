@@ -80,48 +80,41 @@ public class OcrOverlayManager
         _overlayCanvas.Children.Clear();
         double zoomFactor = _pdfView.ZoomPercentage / 100.0;
         double verticalOffset = 0;
-
+        double dpiScale = 1.0;
+        var source = PresentationSource.FromVisual(_overlayCanvas);
+        if (source != null)
+        {
+            dpiScale = source.CompositionTarget.TransformToDevice.M11;
+        }
+        dpiScale = dpiScale * 1.3333;
         foreach (var page in _pdfDocument.Pages.OrderBy(p => p.pageNum))
         {
-            var pdfPage = _loadedDocument.Pages[page.pageNum - 1];
-            // Convert PDF points to WPF DIPs (1 point = 1.3333 DIPs)
-            double pageHeightDip = pdfPage.Size.Height * 96 / 72;
-
-            // Remove manual DPI scaling - only use zoom factor
-            double renderedPageHeight = pageHeightDip * zoomFactor;
+            var pageSize = _loadedDocument.Pages[page.pageNum - 1].Size;
+            double pageHeight = pageSize.Height * dpiScale * zoomFactor;
 
             foreach (var ocrBox in page.OcrBoxes)
             {
-                // Convert OCR coordinates to WPF DIPs
-                var box = new Rect(
-                    ocrBox.Rectangle.X,
-                    ocrBox.Rectangle.Y,
-                    ocrBox.Rectangle.Width,
-                    ocrBox.Rectangle.Height
-                );
-
                 var rectangle = new Rectangle
                 {
-                    Width = box.Width * zoomFactor,
-                    Height = box.Height * zoomFactor,
+                    Width = ocrBox.Rectangle.Width * zoomFactor,
+                    Height = ocrBox.Rectangle.Height * zoomFactor,
                     Stroke = Brushes.Blue,
                     StrokeThickness = 1,
                     Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 }
                 };
 
-                Canvas.SetLeft(rectangle, box.X * zoomFactor);
-                Canvas.SetTop(rectangle, verticalOffset + (box.Y * zoomFactor));
+                Canvas.SetLeft(rectangle, ocrBox.Rectangle.X * zoomFactor);
+                Canvas.SetTop(rectangle, verticalOffset + (ocrBox.Rectangle.Y * zoomFactor));
 
                 ToolTipService.SetToolTip(rectangle, ocrBox.Text);
                 _overlayCanvas.Children.Add(rectangle);
             }
-
-            verticalOffset += renderedPageHeight + _pageGap;
+            verticalOffset += pageHeight + _pageGap;
         }
-
         _overlayCanvas.Height = verticalOffset;
         ApplyScrollTransform();
     }
+
 
 
     public void HandleScroll(ScrollChangedEventArgs args)
