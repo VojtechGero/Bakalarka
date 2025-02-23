@@ -118,21 +118,6 @@ public class OcrOverlayManager
         ApplyScrollTransform();
     }
 
-
-    private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
-    {
-        if (parent == null) return null;
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T result) return result;
-            result = FindVisualChild<T>(child);
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-
     private static T FindChild<T>(DependencyObject parent, string name = null) where T : DependencyObject
     {
         if (parent == null) return null;
