@@ -296,5 +296,8 @@ public partial class MainPage : Page
     {
         PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         _ocrOverlayManager?.zoomChanged();
+        SyncZoom.Content = $"SyncZoom: {PDFView.ZoomPercentage}";
+        MyZoom.Content = $"MyZoom: {_ocrOverlayManager?.GetActualZoomFactor() * 100}";
     }
+
 }

@@ -56,16 +56,7 @@ public class OcrOverlayManager
         RenderAllPages();
     }
 
-    private void CalculateDocumentHeight()
-    {
-        double sum = 0;
-        double zoomFactor = _pdfView.ZoomPercentage / 100.0;
-        for (int i = 0; i < _loadedDocument.Pages.Count; i++)
-        {
-            sum += _loadedDocument.Pages[i].Size.Height * zoomFactor + _pageGap;
-        }
-        _totalDocumentHeight = sum;
-    }
+
 
     public void HideOverlay() => _overlayCanvas.Visibility = Visibility.Hidden;
 
@@ -75,10 +66,22 @@ public class OcrOverlayManager
         RenderAllPages();
     }
 
+    public double GetActualZoomFactor()
+    {
+        if (_loadedDocument.Pages.Count == 0) return 1.0;
+        var veiw = FindChild<PdfDocumentView>(_pdfView);
+        var scrollViewer = FindChild<ScrollViewer>(veiw);
+        if (scrollViewer == null) return 1.0;
+        var dpi = VisualTreeHelper.GetDpi(_pdfView);
+        double pageWidthPoints = _loadedDocument.Pages[0].Size.Width;
+        double pageWidthWpf = pageWidthPoints * (96.0 / 72.0) * dpi.DpiScaleY;
+        return scrollViewer.ViewportWidth / pageWidthWpf;
+    }
+
     private void RenderAllPages()
     {
         _overlayCanvas.Children.Clear();
-        double zoomFactor = _pdfView.ZoomPercentage / 100.0;
+        double zoomFactor = GetActualZoomFactor();
         double verticalOffset = 0;
         double dpiScale = 1.0;
         var source = PresentationSource.FromVisual(_overlayCanvas);
@@ -109,11 +112,54 @@ public class OcrOverlayManager
                 ToolTipService.SetToolTip(rectangle, ocrBox.Text);
                 _overlayCanvas.Children.Add(rectangle);
             }
-            verticalOffset += pageHeight + _pageGap;
+            verticalOffset += pageHeight + (_pageGap * dpiScale);
         }
         _overlayCanvas.Height = verticalOffset;
         ApplyScrollTransform();
     }
+
+
+    private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        if (parent == null) return null;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T result) return result;
+            result = FindVisualChild<T>(child);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+
+    private static T FindChild<T>(DependencyObject parent, string name = null) where T : DependencyObject
+    {
+        if (parent == null) return null;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T result && (name == null || ((FrameworkElement)child).Name == name))
+                return result;
+
+            var nestedResult = FindChild<T>(child, name);
+            if (nestedResult != null)
+                return nestedResult;
+        }
+        return null;
+    }
+    private void CalculateDocumentHeight()
+    {
+        double sum = 0;
+        double zoomFactor = GetActualZoomFactor();
+        for (int i = 0; i < _loadedDocument.Pages.Count; i++)
+        {
+            sum += (_loadedDocument.Pages[i].Size.Height * (96.0 / 72.0) * zoomFactor) + _pageGap;
+        }
+        _totalDocumentHeight = sum;
+    }
+
 
 
 

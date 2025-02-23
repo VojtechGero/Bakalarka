@@ -57,6 +57,10 @@
                     <Button Content="Show" Name="ShowButton" 
                             Width="auto"
                             Visibility="Collapsed" Click="ShowButton_Click"/>
+                    <StackPanel>
+                        <Label Name="SyncZoom"/>
+                        <Label Name="MyZoom"/>
+                    </StackPanel>
                     <StackPanel Name="OcrOutput" Visibility="Hidden" Height="auto" Width="0">
                     </StackPanel>
                 </StackPanel>
