@@ -31,6 +31,6 @@ public partial class SearchResultNavigation : UserControl
             shownResult = 1;
         }
         ResultCount.Text = $"{shownResult}/{_results.Count}";
-        await _mainPage.NextResult(_results[shownResult - 1]);
+        //await _mainPage.NextResult(_results[shownResult - 1]);
     }
 }

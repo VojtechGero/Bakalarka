@@ -4,33 +4,38 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BakalarkaWpf.Views.UserControls"
+             xmlns:models="clr-namespace:BakalarkaWpf.Models"
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="FolderTreeView">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Auto">
         <syncfusion:SfTreeView x:Name="TreeView"
-                               ItemsSource="{Binding RootFolder.Items, ElementName=FolderTreeView}"
-                               ChildPropertyName="Items"
+                               ItemsSource="{Binding RootFolder.SubItems, ElementName=FolderTreeView}"
+                               ChildPropertyName="SubItems"
                                SelectionChanged="TreeView_SelectionChanged">
 
-            <!-- Folder Template -->
             <syncfusion:SfTreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type local:FolderItem}"
-                                          ItemsSource="{Binding Items}">
-                    <TextBlock Text="{Binding Name}"
-                               FontWeight="Bold"  
-                               FontSize="14" />
+                <HierarchicalDataTemplate DataType="{x:Type models:FileItem}" 
+                                          ItemsSource="{Binding SubItems}">
+                    <TextBlock Text="{Binding Name}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Normal"/>
+                                <Setter Property="FontSize" Value="14"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="FontSize" Value="14"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </HierarchicalDataTemplate>
             </syncfusion:SfTreeView.ItemTemplate>
 
-            <!-- File Template -->
-            <syncfusion:SfTreeView.Resources>
-                <DataTemplate DataType="{x:Type local:FileItem}">
-                    <TextBlock Text="{Binding Name}"
-                               FontWeight="Normal" 
-                               FontSize="12" />
-                </DataTemplate>
-            </syncfusion:SfTreeView.Resources>
         </syncfusion:SfTreeView>
-    </Grid>
+    </ScrollViewer>
 </UserControl>
