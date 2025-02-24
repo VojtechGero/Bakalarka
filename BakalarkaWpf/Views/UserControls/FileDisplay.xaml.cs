@@ -25,7 +25,7 @@ public partial class FileDisplay : UserControl
 
     private void UserControl_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        innerElement.Background = System.Windows.Media.Brushes.White;
+        innerElement.Background = System.Windows.Media.Brushes.LightGray;
     }
 
     private void UserControl_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)

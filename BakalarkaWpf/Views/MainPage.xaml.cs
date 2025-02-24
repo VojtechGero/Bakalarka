@@ -1,12 +1,8 @@
 ﻿using BakalarkaWpf.Models;
-using BakalarkaWpf.Services;
 using BakalarkaWpf.ViewModels;
+using BakalarkaWpf.Views.UserControls;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using Page = System.Windows.Controls.Page;
 
 namespace BakalarkaWpf.Views;
@@ -14,58 +10,67 @@ namespace BakalarkaWpf.Views;
 public partial class MainPage : Page
 {
     private string workingForlder;
-    private string loadedFile = "";
-    private string query = "";
-    private OcrOverlayManager _ocrOverlayManager;
-    private ApiSearchService _searchService;
-    private bool isSearchPanelVisible = false;
-    private bool DocumentLoaded = false;
-    private bool overlayShowed = false;
-    private List<FileResults> searchResults = new List<FileResults>();
+    private DMS _dms;
+    private PdfDisplay? _PdfDisplay = null;
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
         workingForlder = Path.GetFullPath("./data");
-
         DataContext = viewModel;
-        _searchService = new ApiSearchService();
-        FolderTreeControl.LoadFolderStructure(workingForlder);
-        Dms.UpdateItems(workingForlder);
-        FolderTreeControl.TreeFileClicked += TreeFileClicked;
-        Dms.ListFileClicked += ListFileClicked;
+        _dms = new DMS(workingForlder);
+        _dms.FileSelected += Dms_FileSelected;
+        _dms.SearchSelected += SearchSelected;
+        mainGrid.Children.Add(_dms);
     }
-    private void TreeFileClicked(object sender, FileItem fileItem)
+
+    private async void SearchSelected(object? sender, FileResults results)
     {
-        if (fileItem.IsDirectory)
+        if (_PdfDisplay is not null && _PdfDisplay?.fileItem.Path == results.FilePath)
         {
-            Dms.UpdateItems(fileItem.Path);
+            mainGrid.Children.Clear();
+            mainGrid.Children.Add(_PdfDisplay);
         }
+        else
+        {
+            _PdfDisplay = new PdfDisplay(new FileItem()
+            {
+                Path = results.FilePath,
+                Name = Path.GetFileName(results.FilePath),
+                IsDirectory = false
+            });
+            mainGrid.Children.Clear();
+            mainGrid.Children.Add(_PdfDisplay);
+            _PdfDisplay.BackButtonPressed += BackButtonPressed;
+        }
+        _PdfDisplay.openSearchBox(results);
     }
-    private void ListFileClicked(object sender, FileItem fileItem)
+
+    private void Dms_FileSelected(object? sender, FileItem item)
     {
-        if (fileItem.IsDirectory)
+        if (_PdfDisplay is not null && _PdfDisplay?.fileItem.Path == item.Path)
         {
-            Dms.UpdateItems(fileItem.Path);
+            mainGrid.Children.Clear();
+            mainGrid.Children.Add(_PdfDisplay);
         }
-        FolderTreeControl.SetSelectedItem(fileItem);
+        else
+        {
+            _PdfDisplay = new PdfDisplay(item);
+            mainGrid.Children.Clear();
+            mainGrid.Children.Add(_PdfDisplay);
+            _PdfDisplay.BackButtonPressed += BackButtonPressed;
+        }
+
+    }
+
+    private void BackButtonPressed(object? sender, EventArgs e)
+    {
+        mainGrid.Children.Clear();
+        mainGrid.Children.Add(_dms);
     }
 
     private async void LoadButtonClick(object sender, System.Windows.RoutedEventArgs e)
     {
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            FileName = "Document",
-            DefaultExt = ".pdf",
-            Filter = "Pdf document (.pdf)|*.pdf"
-        };
 
-        bool? result = dialog.ShowDialog();
-        if (result == true)
-        {
-            string localPath = copyFile(dialog.FileName);
-
-
-        }
     }
 
     private string copyFile(string filePath)
@@ -73,46 +78,11 @@ public partial class MainPage : Page
         string name = Path.GetFileName(filePath);
         string newPath = Path.Combine(workingForlder, name);
         File.Copy(filePath, newPath);
-        FolderTreeControl.Update();
+        //FolderTreeControl.Update();
         return newPath;
     }
 
 
-
-
-    private void HighlightResult(object sender, MouseEventArgs e)
-    {
-        TextBlock block = (TextBlock)sender;
-        block.Background = System.Windows.Media.Brushes.Aqua;
-    }
-    private void RemoveHighlight(object sender, MouseEventArgs e)
-    {
-        TextBlock block = (TextBlock)sender;
-        block.Background = System.Windows.Media.Brushes.White;
-    }
-
-    private void PDFView_DocumentLoaded(object sender, EventArgs args)
-    {
-        DocumentLoaded = true;
-    }
-
-    private void ShowButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (overlayShowed)
-        {
-            _ocrOverlayManager.HideOverlay();
-        }
-        else
-        {
-            _ocrOverlayManager.ShowOverlay();
-        }
-        overlayShowed = !overlayShowed;
-    }
-
-    private void PDFView_ScrollChanged(object sender, ScrollChangedEventArgs args)
-    {
-        _ocrOverlayManager?.HandleScroll(args);
-    }
 
 
 }

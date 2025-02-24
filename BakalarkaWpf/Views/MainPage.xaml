@@ -11,21 +11,7 @@
     mc:Ignorable="d"
     d:DesignHeight="450" d:DesignWidth="800"
     >
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" BorderThickness="0 0 1 0" BorderBrush="Black">
-            <ScrollViewer  VerticalScrollBarVisibility="Auto" 
-                        HorizontalScrollBarVisibility="Auto" >
-                <local:FolderTreeViewControl
-                x:Name="FolderTreeControl" 
-                Margin="10"/>
-            </ScrollViewer>
-        </Border>
-        <Border Grid.Column="1">
-            <local:DMS x:Name="Dms" Margin="10"/>
-        </Border>
+    <Grid Name="mainGrid">
+        
     </Grid>
 </Page>

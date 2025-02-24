@@ -2,6 +2,7 @@
 
 public class FileResults
 {
-    public string FileName { get; set; }
+    public string Query { get; set; }
+    public string FilePath { get; set; }
     public int OccurrenceCount { get; set; }
 }

@@ -29,7 +29,8 @@ public class SearchController : ControllerBase
         .GroupBy(sr => sr.FilePath)
         .Select(group => new FileResults
         {
-            FileName = group.Key,
+            Query = query,
+            FilePath = group.Key,
             OccurrenceCount = group.Count()
         })
         .ToList();

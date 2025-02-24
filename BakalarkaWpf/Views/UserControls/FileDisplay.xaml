@@ -10,7 +10,7 @@
              MouseLeave="UserControl_MouseLeave"
              MouseUp="UserControl_MouseUp">
     <Border Margin="5" BorderThickness="1" BorderBrush="Black">
-        <Grid Name="innerElement">
+        <Grid Name="innerElement" Background="LightGray">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="8*"/>

@@ -1,0 +1,50 @@
+﻿<Window x:Class="BakalarkaWpf.Views.SearchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BakalarkaWpf.Views"
+        mc:Ignorable="d"
+        Title="SearchWindow" Height="450" Width="400">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <!-- Search bar -->
+        <TextBox x:Name="SearchTextBox"
+                 Grid.Row="0"
+                 Width="300"
+                 FontSize="20"
+                 Margin="0,0,0,10"
+                 VerticalAlignment="Top" HorizontalAlignment="Left"/>
+
+        <Button x:Name="SearchButton"
+                Grid.Row="1"
+                Width="100"
+                Height="30"
+                Content="Search"
+                FontSize="20"
+                VerticalAlignment="Top" 
+                HorizontalAlignment="Left"
+                Click="SearchButton_Click"/>
+
+        <ListBox x:Name="ResultsListBox"
+                 Grid.Row="2"
+                 Margin="0,10,0,0"
+                 MouseDoubleClick="ResultsListBox_MouseDoubleClick">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding FilePath}" />
+                        <TextBlock Text=": " />
+                        <TextBlock Text="{Binding OccurrenceCount}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+    </Grid>
+</Window>

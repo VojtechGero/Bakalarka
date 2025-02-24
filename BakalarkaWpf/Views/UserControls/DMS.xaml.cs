@@ -12,10 +12,17 @@ namespace BakalarkaWpf.Views.UserControls
     public partial class DMS : UserControl
     {
         List<FileItem> _fileItems;
-        public event EventHandler<FileItem> ListFileClicked;
-        public DMS()
+        private string _workingFolder;
+        public event EventHandler<FileItem> FileSelected;
+        public event EventHandler<FileResults> SearchSelected;
+        SearchWindow _searchWindow = null;
+        public DMS(string workingFolder)
         {
+            _workingFolder = workingFolder;
             InitializeComponent();
+            FolderTreeControl.LoadFolderStructure(_workingFolder);
+            UpdateItems(_workingFolder);
+            FolderTreeControl.TreeFileClicked += TreeFileClicked;
         }
         public void UpdateItems(string path)
         {
@@ -28,6 +35,30 @@ namespace BakalarkaWpf.Views.UserControls
                 FilesPanel.Children.Add(file);
             }
         }
+        private void TreeFileClicked(object sender, FileItem fileItem)
+        {
+            if (fileItem.IsDirectory)
+            {
+                UpdateItems(fileItem.Path);
+            }
+            else
+            {
+                FileSelected?.Invoke(this, fileItem);
+            }
+        }
+        private void ListFileClicked(object sender, FileItem fileItem)
+        {
+            if (fileItem.IsDirectory)
+            {
+                UpdateItems(fileItem.Path);
+            }
+            else
+            {
+                FileSelected?.Invoke(this, fileItem);
+            }
+            //FolderTreeControl.SetSelectedItem(fileItem);
+        }
+
         private List<FileItem> LoadTopLevelFolderItems(string path)
         {
             if (!Directory.Exists(path))
@@ -62,6 +93,40 @@ namespace BakalarkaWpf.Views.UserControls
             }
 
             return items;
+        }
+
+        private void SearchButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _searchWindow = new SearchWindow();
+            _searchWindow.Show();
+            _searchWindow.SearchSelected += SearchSelected;
+        }
+
+        private void AddButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                FileName = "Document",
+                DefaultExt = ".pdf",
+                Filter = "Pdf document (.pdf)|*.pdf"
+            };
+
+            bool? result = dialog.ShowDialog();
+            if (result == true)
+            {
+                string localPath = copyFile(dialog.FileName);
+
+
+            }
+        }
+
+        private string copyFile(string filePath)
+        {
+            string name = Path.GetFileName(filePath);
+            string newPath = Path.Combine(_workingFolder, name);
+            File.Copy(filePath, newPath);
+            FolderTreeControl.Update();
+            return newPath;
         }
     }
 }

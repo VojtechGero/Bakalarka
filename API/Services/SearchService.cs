@@ -14,7 +14,7 @@ public class SearchService
     public async Task<List<SearchResult>> SearchAsync(string query)
     {
         var results = new List<SearchResult>();
-        var jsonFiles = Directory.EnumerateFiles(_folderPath, "*.json");
+        var jsonFiles = Directory.EnumerateFiles(_folderPath, "*.json", SearchOption.AllDirectories);
 
         foreach (var file in jsonFiles)
         {
@@ -43,7 +43,6 @@ public class SearchService
                         if (matchIndex >= currentCharIndex && matchIndex < currentCharIndex + boxText.Length)
                         {
                             startBoxIndex = i;
-                            // Calculate how many boxes the match spans
                             while (remainingMatchLength > 0 && i < boxTexts.Count)
                             {
                                 int boxTextLength = boxTexts[i].Length;
@@ -54,7 +53,8 @@ public class SearchService
 
                             results.Add(new SearchResult
                             {
-                                FilePath = pdf.Path,
+                                Query = query,
+                                FilePath = Path.GetFullPath(Path.ChangeExtension(file, ".pdf")),
                                 PageNumber = page.pageNum,
                                 MatchedText = combinedText.Substring(matchIndex, query.Length),
                                 MatchIndex = matchIndex,
@@ -104,7 +104,6 @@ public class SearchService
                         if (matchIndex >= currentCharIndex && matchIndex < currentCharIndex + boxText.Length)
                         {
                             startBoxIndex = i;
-                            // Calculate how many boxes the match spans
                             while (remainingMatchLength > 0 && i < boxTexts.Count)
                             {
                                 int boxTextLength = boxTexts[i].Length;
@@ -115,6 +114,7 @@ public class SearchService
 
                             results.Add(new SearchResult
                             {
+                                Query = query,
                                 FilePath = pdf.Path,
                                 PageNumber = page.pageNum,
                                 MatchedText = combinedText.Substring(matchIndex, query.Length),
@@ -126,7 +126,6 @@ public class SearchService
                         }
                         currentCharIndex += boxText.Length + 1;
                     }
-
                     matchIndex = combinedText.IndexOf(string.Join(" ", queryWords), matchIndex + query.Length, StringComparison.OrdinalIgnoreCase);
                 }
             }
