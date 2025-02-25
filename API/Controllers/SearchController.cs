@@ -41,6 +41,8 @@ public class SearchController : ControllerBase
     {
         //string file = Regex.Unescape(fileName);
         var results = await _searchService.SearchAsync(query);
+        Console.WriteLine($"name:\n{fileName}");
+        Console.WriteLine(string.Join("\n", results.Select(x => x.FilePath)));
         var fileResults = results
         .Where(sr => sr.FilePath == fileName)
         .ToList();
