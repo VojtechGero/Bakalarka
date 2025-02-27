@@ -184,20 +184,22 @@ public class OcrOverlayManager
 
     public void Recolor(SearchResult result)
     {
-        for (int i = 0; i < _overlayCanvas.Children.Count; i++)
+        // Get all rectangles in the overlay canvas
+        var rectangles = _overlayCanvas.Children.OfType<Rectangle>().ToList();
+
+        for (int i = 0; i < rectangles.Count; i++)
         {
-            if (_overlayCanvas.Children[i] is Rectangle rectangle)
+            if (i == result.BoxIndex)
             {
-                if (i >= result.BoxIndex && i < result.BoxIndex + result.BoxSpan)
-                {
-                    rectangle.Fill = new SolidColorBrush(Colors.Green) { Opacity = 0.2 };
-                    rectangle.Stroke = Brushes.Green;
-                }
-                else
-                {
-                    rectangle.Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 };
-                    rectangle.Stroke = Brushes.Blue;
-                }
+                // Highlight the matching rectangle in green
+                rectangles[i].Fill = new SolidColorBrush(Colors.Green) { Opacity = 0.2 };
+                rectangles[i].Stroke = Brushes.Green;
+            }
+            else
+            {
+                // Color the other rectangles in blue
+                rectangles[i].Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 };
+                rectangles[i].Stroke = Brushes.Blue;
             }
         }
     }

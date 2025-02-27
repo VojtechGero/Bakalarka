@@ -24,12 +24,12 @@ public class SearchService
 
             if (pdf == null) continue;
 
+            int totalBoxes = 0;
             foreach (var page in pdf.Pages)
             {
                 var boxTexts = page.OcrBoxes.Select(b => b.Text ?? string.Empty).ToList();
                 string combinedText = string.Join(" ", boxTexts);
                 int matchIndex = combinedText.IndexOf(query, StringComparison.OrdinalIgnoreCase);
-
 
                 for (int i = 0; i < page.OcrBoxes.Count; i++)
                 {
@@ -37,14 +37,15 @@ public class SearchService
                     {
                         results.Add(new SearchResult
                         {
-                            FilePath = Path.GetFullPath(file),
+                            FilePath = Path.ChangeExtension(Path.GetFullPath(file), ".pdf"),
                             PageNumber = page.pageNum,
                             MatchedText = combinedText.Substring(matchIndex, query.Length),
                             MatchIndex = matchIndex,
-                            BoxIndex = i,
+                            BoxIndex = totalBoxes,
                             BoxSpan = 1
                         });
                     }
+                    totalBoxes++;
 
 
                 }

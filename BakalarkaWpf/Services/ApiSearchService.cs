@@ -41,7 +41,11 @@ public class ApiSearchService
             var restultjson = await _httpClient.GetAsync(url).Result.Content.ReadAsStringAsync();
             if (restultjson != null)
             {
-                var results = JsonSerializer.Deserialize<List<SearchResult>>(restultjson);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var results = JsonSerializer.Deserialize<List<SearchResult>>(restultjson, options);
                 return results;
             }
             return new List<SearchResult>();

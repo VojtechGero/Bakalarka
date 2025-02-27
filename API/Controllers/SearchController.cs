@@ -39,10 +39,7 @@ public class SearchController : ControllerBase
     [HttpGet("result")]
     public async Task<List<SearchResult>> GetResult(string query, string fileName, int occurrenceCount)
     {
-        //string file = Regex.Unescape(fileName);
         var results = await _searchService.SearchAsync(query);
-        Console.WriteLine($"name:\n{fileName}");
-        Console.WriteLine(string.Join("\n", results.Select(x => x.FilePath)));
         var fileResults = results
         .Where(sr => sr.FilePath == fileName)
         .ToList();
