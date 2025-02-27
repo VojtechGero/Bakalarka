@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BakalarkaWpf.Services;
@@ -37,8 +38,17 @@ public class ApiSearchService
         try
         {
             var url = $"{_apiBaseUrl}Search/result?query={Uri.EscapeDataString(query)}&fileName={Uri.EscapeDataString(fileName)}";
-            var results = await _httpClient.GetFromJsonAsync<List<SearchResult>>(url);
-            return results ?? new List<SearchResult>();
+            var restultjson = await _httpClient.GetAsync(url).Result.Content.ReadAsStringAsync();
+            if (restultjson != null)
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var results = JsonSerializer.Deserialize<List<SearchResult>>(restultjson, options);
+                return results;
+            }
+            return new List<SearchResult>();
         }
         catch (Exception ex)
         {

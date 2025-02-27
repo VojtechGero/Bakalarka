@@ -29,7 +29,8 @@ public class SearchController : ControllerBase
         .GroupBy(sr => sr.FilePath)
         .Select(group => new FileResults
         {
-            FileName = group.Key,
+            Query = query,
+            FilePath = group.Key,
             OccurrenceCount = group.Count()
         })
         .ToList();
@@ -38,7 +39,6 @@ public class SearchController : ControllerBase
     [HttpGet("result")]
     public async Task<List<SearchResult>> GetResult(string query, string fileName, int occurrenceCount)
     {
-        //string file = Regex.Unescape(fileName);
         var results = await _searchService.SearchAsync(query);
         var fileResults = results
         .Where(sr => sr.FilePath == fileName)
