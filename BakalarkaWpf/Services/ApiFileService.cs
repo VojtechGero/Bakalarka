@@ -29,4 +29,18 @@ public class ApiFileService
             return new List<FileItem>();
         }
     }
+    public async Task<FileItem?> GetTopAllItems()
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/structure";
+            var results = await _httpClient.GetFromJsonAsync<FileItem>(url);
+            return results;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetTopLevelItems: {ex.Message}");
+            return null;
+        }
+    }
 }

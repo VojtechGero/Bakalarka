@@ -16,9 +16,15 @@ public class FileController : ControllerBase
         _fileService = new FileService();
     }
     [HttpGet("list")]
-    public List<FileItem> GetResults(string path)
+    public List<FileItem> GetTopLevel(string path)
     {
-        var FileItems = _fileService.ListAllTopFiles(path);
+        var FileItems = _fileService.ListAllTopItems(path);
+        return FileItems;
+    }
+    [HttpGet("structure")]
+    public FileItem GetStructure()
+    {
+        var FileItems = _fileService.ListAllItems();
         return FileItems;
     }
 }

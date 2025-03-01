@@ -39,11 +39,11 @@ namespace BakalarkaWpf.Views.UserControls
                 FilesPanel.Children.Add(file);
             }
         }
-        private void TreeFileClicked(object sender, FileItem fileItem)
+        private async void TreeFileClicked(object sender, FileItem fileItem)
         {
             if (fileItem.IsDirectory)
             {
-                UpdateItems(fileItem.Path);
+                await UpdateItems(fileItem.Path);
             }
             else
             {
@@ -55,6 +55,7 @@ namespace BakalarkaWpf.Views.UserControls
             if (fileItem.IsDirectory)
             {
                 UpdateItems(fileItem.Path);
+                FolderTreeControl.SetSelectedItem(fileItem);
             }
             else
             {
@@ -106,5 +107,6 @@ namespace BakalarkaWpf.Views.UserControls
             FolderTreeControl.Update();
             return newPath;
         }
+
     }
 }

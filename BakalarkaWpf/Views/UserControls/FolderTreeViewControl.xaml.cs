@@ -1,10 +1,11 @@
 ﻿using BakalarkaWpf.Models;
+using BakalarkaWpf.Services;
 using Syncfusion.UI.Xaml.TreeView;
 using Syncfusion.UI.Xaml.TreeView.Engine;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,12 +16,24 @@ namespace BakalarkaWpf.Views.UserControls
         private bool isProgrammaticSelection;
         public event EventHandler<FileItem> TreeFileClicked;
         private string workingFolder;
+        private readonly ApiFileService _fileService;
 
         public FolderTreeViewControl()
         {
             InitializeComponent();
+            _fileService = new ApiFileService();
+            TreeView.Loaded += TreeView_Loaded;
         }
 
+        private void TreeView_Loaded(object sender, RoutedEventArgs e)
+        {
+            TreeView.SelectAll();
+            SetSelectedItem(RootFolder);
+        }
+        public void SelectFirst()
+        {
+            SetSelectedItem(RootFolder);
+        }
         public static readonly DependencyProperty RootFolderProperty =
             DependencyProperty.Register("RootFolder", typeof(FileItem), typeof(FolderTreeViewControl),
                 new PropertyMetadata(null));
@@ -31,54 +44,20 @@ namespace BakalarkaWpf.Views.UserControls
             set => SetValue(RootFolderProperty, value);
         }
 
-        public void Update()
+        public async Task Update()
         {
             if (!Directory.Exists(workingFolder))
             {
                 Directory.CreateDirectory(workingFolder);
             }
-            RootFolder = GetFolderStructure(workingFolder);
-            // Wrap root folder in a list to show it as the top node
+            RootFolder = await GetFolderStructure();
             TreeView.ItemsSource = new List<FileItem> { RootFolder };
         }
 
 
-        private FileItem GetFolderStructure(string path)
+        private async Task<FileItem> GetFolderStructure()
         {
-            var folderName = Path.GetFileName(path);
-            if (string.IsNullOrEmpty(folderName)) // Handle root directories
-            {
-                folderName = path;
-            }
-
-            var folder = new FileItem
-            {
-                Name = folderName,
-                Path = path,
-                IsDirectory = true,
-                SubItems = new List<FileItem>()
-            };
-
-            // Add subdirectories
-            foreach (var dir in Directory.GetDirectories(path))
-            {
-                folder.SubItems.Add(GetFolderStructure(dir));
-            }
-
-            // Add PDF files
-            foreach (var file in Directory.GetFiles(path)
-                         .Where(x => x.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)))
-            {
-                folder.SubItems.Add(new FileItem
-                {
-                    Name = Path.GetFileName(file),
-                    Path = file,
-                    IsDirectory = false,
-                    SubItems = null
-                });
-            }
-
-            return folder;
+            return await _fileService.GetTopAllItems();
         }
 
         private void TreeView_SelectionChanged(object sender, ItemSelectionChangedEventArgs e)
@@ -107,7 +86,6 @@ namespace BakalarkaWpf.Views.UserControls
             TreeView.BringIntoView(target);
             isProgrammaticSelection = false;
         }
-
         private FileItem FindItemByPath(FileItem root, string path)
         {
             if (root.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
@@ -127,18 +105,19 @@ namespace BakalarkaWpf.Views.UserControls
             return null;
         }
 
-        public void LoadFolderStructure(string path)
+        public async Task LoadFolderStructure(string path)
         {
             workingFolder = path;
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
-            RootFolder = GetFolderStructure(path);
+            RootFolder = await GetFolderStructure();
             TreeView.ItemsSource = new List<FileItem> { RootFolder };
+            TreeView.SelectAll();
+            SetSelectedItem(RootFolder);
         }
 
-        // Add this method to expand nodes
         public void ExpandNode(FileItem item)
         {
             if (item == null) return;
@@ -153,8 +132,6 @@ namespace BakalarkaWpf.Views.UserControls
         {
             if (TreeView.Nodes == null || targetItem == null)
                 return null;
-
-            // Search through all root nodes (in our case just the working folder)
             foreach (var rootNode in TreeView.Nodes)
             {
                 var node = FindTreeNodeRecursive(rootNode, targetItem);
@@ -166,14 +143,11 @@ namespace BakalarkaWpf.Views.UserControls
 
         private TreeViewNode FindTreeNodeRecursive(TreeViewNode parentNode, FileItem targetItem)
         {
-            // Check if current node matches
             if (parentNode.Content is FileItem item &&
                 item.Path.Equals(targetItem.Path, StringComparison.OrdinalIgnoreCase))
             {
                 return parentNode;
             }
-
-            // Search child nodes
             if (parentNode.ChildNodes != null)
             {
                 foreach (var childNode in parentNode.ChildNodes)
