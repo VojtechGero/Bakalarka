@@ -1,7 +1,9 @@
 ﻿using BakalarkaWpf.Models;
+using BakalarkaWpf.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 
 namespace BakalarkaWpf.Views.UserControls
@@ -13,20 +15,22 @@ namespace BakalarkaWpf.Views.UserControls
     {
         List<FileItem> _fileItems;
         private string _workingFolder;
+        private readonly ApiFileService _fileService;
         public event EventHandler<FileItem> FileSelected;
         public event EventHandler<FileResults> SearchSelected;
         SearchWindow _searchWindow = null;
         public DMS(string workingFolder)
         {
             _workingFolder = workingFolder;
+            _fileService = new ApiFileService();
             InitializeComponent();
             FolderTreeControl.LoadFolderStructure(_workingFolder);
             UpdateItems(_workingFolder);
             FolderTreeControl.TreeFileClicked += TreeFileClicked;
         }
-        public void UpdateItems(string path)
+        public async Task UpdateItems(string path)
         {
-            _fileItems = LoadTopLevelFolderItems(path);
+            _fileItems = await LoadTopLevelFolderItems(path);
             FilesPanel.Children.Clear();
             foreach (FileItem item in _fileItems)
             {
@@ -59,39 +63,13 @@ namespace BakalarkaWpf.Views.UserControls
             //FolderTreeControl.SetSelectedItem(fileItem);
         }
 
-        private List<FileItem> LoadTopLevelFolderItems(string path)
+        private async Task<List<FileItem>> LoadTopLevelFolderItems(string path)
         {
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
-
-            var items = new List<FileItem>();
-
-            foreach (var dir in Directory.GetDirectories(path))
-            {
-                items.Add(new FileItem
-                {
-                    Name = Path.GetFileName(dir),
-                    Path = dir,
-                    IsDirectory = true,
-                    SubItems = null
-                });
-            }
-            foreach (var file in Directory.GetFiles(path))
-            {
-                if (!file.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                items.Add(new FileItem
-                {
-                    Name = Path.GetFileName(file),
-                    Path = file,
-                    IsDirectory = false,
-                    SubItems = null
-                });
-            }
-
+            var items = await _fileService.GetTopLevelItems(path);
             return items;
         }
 

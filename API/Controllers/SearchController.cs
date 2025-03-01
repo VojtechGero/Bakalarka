@@ -1,5 +1,5 @@
+using API.Models;
 using API.Services;
-using BakalarkaWpf.Models;
 using Microsoft.AspNetCore.Mvc;
 using FileResults = API.Models.FileResults;
 
@@ -12,13 +12,11 @@ public class SearchController : ControllerBase
 
     private readonly ILogger<SearchController> _logger;
     private SearchService _searchService;
-    private string _workingFolder = @"../BakalarkaWpf/bin/Debug/net8.0-windows/data";
 
     public SearchController(ILogger<SearchController> logger)
     {
         _logger = logger;
-        var path = Path.GetFullPath(_workingFolder);
-        _searchService = new SearchService(_workingFolder);
+        _searchService = new SearchService();
     }
 
     [HttpGet("results")]
@@ -45,6 +43,7 @@ public class SearchController : ControllerBase
         .ToList();
         return fileResults;
     }
+    /*
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
@@ -73,5 +72,6 @@ public class SearchController : ControllerBase
             return StatusCode(500, "Internal server error while uploading the file.");
         }
     }
+    */
 }
 

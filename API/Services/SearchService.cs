@@ -1,14 +1,13 @@
-﻿using BakalarkaWpf.Models;
+﻿using API.Models;
 using System.Text.Json;
 
 namespace API.Services;
 public class SearchService
 {
-    private readonly string _folderPath;
+    private readonly string _folderPath = @"../BakalarkaWpf/bin/Debug/net8.0-windows/data";
 
-    public SearchService(string folderPath)
+    public SearchService()
     {
-        _folderPath = folderPath;
     }
 
     public async Task<List<SearchResult>> SearchAsync(string query)
