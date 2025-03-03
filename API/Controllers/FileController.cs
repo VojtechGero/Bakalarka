@@ -28,7 +28,7 @@ public class FileController : ControllerBase
         return FileItems;
     }
     [HttpPost("upload")]
-    public async Task<IActionResult> UploadFile(IFormFile file, string path)
+    public async Task<IActionResult> UploadFile(IFormFile file, [FromForm] string path)
     {
         if (file == null || file.Length == 0)
         {

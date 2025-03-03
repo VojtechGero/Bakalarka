@@ -1,6 +1,7 @@
 ﻿using BakalarkaWpf.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -41,6 +42,42 @@ public class ApiFileService
         {
             Console.WriteLine($"Error in GetTopLevelItems: {ex.Message}");
             return null;
+        }
+    }
+    public async Task<bool> UploadFileAsync(string localFilePath, string targetDirectoryPath)
+    {
+        try
+        {
+            if (!File.Exists(localFilePath))
+            {
+                Console.WriteLine("File not found.");
+                return false;
+            }
+
+            using var fileStream = File.OpenRead(localFilePath);
+            var fileName = Path.GetFileName(localFilePath);
+
+            using var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(fileStream), "file", fileName);
+            content.Add(new StringContent(targetDirectoryPath), "path");
+
+            var response = await _httpClient.PostAsync($"{_apiBaseUrl}File/upload", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("File uploaded successfully.");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Upload failed with status code: {response.StatusCode}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error uploading file: {ex.Message}");
+            return false;
         }
     }
 }

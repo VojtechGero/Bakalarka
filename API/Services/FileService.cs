@@ -4,7 +4,7 @@ namespace API.Services;
 
 public class FileService
 {
-    private readonly string _folderPath = @"../BakalarkaWpf/bin/Debug/net8.0-windows/data";
+    private readonly string _rootFolderPath = @"../BakalarkaWpf/bin/Debug/net8.0-windows/data";
     public FileService()
     {
 
@@ -15,6 +15,19 @@ public class FileService
         List<FileItem> list = new List<FileItem>();
         var filePaths = Directory.EnumerateFiles(path, "*.json");
         var directoryPaths = Directory.EnumerateDirectories(path);
+        if (Path.GetFullPath(_rootFolderPath) != Path.GetFullPath(path))
+        {
+            var parent = GetParentFolder(path);
+            var root = new FileItem()
+            {
+                IsDirectory = true,
+                Path = parent,
+                Name = $"Zpět na {Path.GetFileName(parent)}",
+                SubItems = null
+            };
+            list.Add(root);
+        }
+
         foreach (var directory in directoryPaths)
         {
             var item = new FileItem()
@@ -39,9 +52,15 @@ public class FileService
         }
         return list;
     }
+    private string GetParentFolder(string filePath)
+    {
+        DirectoryInfo parentDirectory = Directory.GetParent(filePath);
+        return parentDirectory.FullName;
+    }
+
     public FileItem ListAllItems()
     {
-        var item = GetFolderStructure(_folderPath);
+        var item = GetFolderStructure(_rootFolderPath);
         return item;
     }
     private FileItem GetFolderStructure(string path)

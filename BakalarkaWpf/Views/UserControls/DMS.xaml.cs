@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace BakalarkaWpf.Views.UserControls
@@ -81,7 +82,7 @@ namespace BakalarkaWpf.Views.UserControls
             _searchWindow.SearchSelected += SearchSelected;
         }
 
-        private void AddButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private async void AddButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -93,9 +94,15 @@ namespace BakalarkaWpf.Views.UserControls
             bool? result = dialog.ShowDialog();
             if (result == true)
             {
-                string localPath = copyFile(dialog.FileName);
-
-
+                bool uploadResult = await _fileService.UploadFileAsync(dialog.FileName, _workingFolder);
+                if (uploadResult == true)
+                {
+                    FolderTreeControl.Update();
+                }
+                else
+                {
+                    MessageBox.Show("File upload failed");
+                }
             }
         }
 
@@ -104,7 +111,6 @@ namespace BakalarkaWpf.Views.UserControls
             string name = Path.GetFileName(filePath);
             string newPath = Path.Combine(_workingFolder, name);
             File.Copy(filePath, newPath);
-            FolderTreeControl.Update();
             return newPath;
         }
 
