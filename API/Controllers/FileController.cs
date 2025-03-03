@@ -27,4 +27,32 @@ public class FileController : ControllerBase
         var FileItems = _fileService.ListAllItems();
         return FileItems;
     }
+    [HttpPost("upload")]
+    public async Task<IActionResult> UploadFile(IFormFile file, string path)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded or file is empty.");
+        }
+
+        try
+        {
+            Directory.CreateDirectory(path);
+
+            var filePath = Path.Combine(path, file.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            _logger.LogInformation($"File uploaded successfully: {filePath}");
+            return Ok(new { Message = "File uploaded successfully", FileName = file.FileName });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while uploading the file.");
+            return StatusCode(500, "Internal server error while uploading the file.");
+        }
+    }
 }

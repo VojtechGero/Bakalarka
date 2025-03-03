@@ -44,34 +44,7 @@ public class SearchController : ControllerBase
         return fileResults;
     }
     /*
-    [HttpPost("upload")]
-    public async Task<IActionResult> UploadFile(IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-        {
-            return BadRequest("No file uploaded or file is empty.");
-        }
-
-        try
-        {
-            Directory.CreateDirectory(_workingFolder);
-
-            var filePath = Path.Combine(_workingFolder, file.FileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            _logger.LogInformation($"File uploaded successfully: {filePath}");
-            return Ok(new { Message = "File uploaded successfully", FileName = file.FileName });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while uploading the file.");
-            return StatusCode(500, "Internal server error while uploading the file.");
-        }
-    }
+    
     */
 }
 
