@@ -25,7 +25,7 @@ public partial class MainPage : Page
 
     private async void SearchSelected(object? sender, FileResults results)
     {
-        if (_PdfDisplay is not null && _PdfDisplay?.fileItem.Path == results.FilePath)
+        if (_PdfDisplay is not null && _PdfDisplay?._fileItem.Path == results.FilePath)
         {
             mainGrid.Children.Clear();
             mainGrid.Children.Add(_PdfDisplay);
@@ -47,7 +47,7 @@ public partial class MainPage : Page
 
     private void Dms_FileSelected(object? sender, FileItem item)
     {
-        if (_PdfDisplay is not null && _PdfDisplay?.fileItem.Path == item.Path)
+        if (_PdfDisplay is not null && _PdfDisplay?._fileItem.Path == item.Path)
         {
             mainGrid.Children.Clear();
             mainGrid.Children.Add(_PdfDisplay);

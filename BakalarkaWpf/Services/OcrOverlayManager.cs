@@ -181,23 +181,26 @@ public class OcrOverlayManager
         RenderAllPages();
     }
 
+    public double GetBoxVerticalOffset(SearchResult result)
+    {
+        var rectangles = _overlayCanvas.Children.OfType<Rectangle>().ToList();
 
+        var rectangle = rectangles[result.BoxIndex];
+        return (double)rectangle.GetValue(Canvas.TopProperty);
+    }
     public void Recolor(SearchResult result)
     {
-        // Get all rectangles in the overlay canvas
         var rectangles = _overlayCanvas.Children.OfType<Rectangle>().ToList();
 
         for (int i = 0; i < rectangles.Count; i++)
         {
             if (i == result.BoxIndex)
             {
-                // Highlight the matching rectangle in green
                 rectangles[i].Fill = new SolidColorBrush(Colors.Green) { Opacity = 0.2 };
                 rectangles[i].Stroke = Brushes.Green;
             }
             else
             {
-                // Color the other rectangles in blue
                 rectangles[i].Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 };
                 rectangles[i].Stroke = Brushes.Blue;
             }

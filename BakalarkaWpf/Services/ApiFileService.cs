@@ -80,4 +80,11 @@ public class ApiFileService
             return false;
         }
     }
+    public async Task<byte[]> GetFileAsync(string path)
+    {
+        var url = $"{_apiBaseUrl}File/file?path={Uri.EscapeDataString(path)}";
+        var response = await _httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync();
+    }
 }

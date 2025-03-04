@@ -58,6 +58,16 @@ public class FileService
         return parentDirectory.FullName;
     }
 
+    /*
+    public FileContentResult? GetFile(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            return File(filePath, "application/pdf", "test.pdf");
+        }
+    }
+    */
+
     public FileItem ListAllItems()
     {
         var item = GetFolderStructure(_rootFolderPath);

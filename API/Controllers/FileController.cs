@@ -1,6 +1,7 @@
 ﻿using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace API.Controllers;
 
@@ -26,6 +27,21 @@ public class FileController : ControllerBase
     {
         var FileItems = _fileService.ListAllItems();
         return FileItems;
+    }
+    [HttpGet("file")]
+    public ActionResult GetFile(string path)
+    {
+        byte[] fileBytes = System.IO.File.ReadAllBytes(path);
+
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(path, out string contentType))
+        {
+            contentType = "application/octet-stream";
+        }
+
+        string fileName = Path.GetFileName(path);
+
+        return File(fileBytes, contentType, fileName);
     }
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(IFormFile file, [FromForm] string path)

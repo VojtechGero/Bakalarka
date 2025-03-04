@@ -98,30 +98,30 @@ namespace BakalarkaWpf.Views.UserControls
             {
                 FileName = "Document",
                 DefaultExt = ".pdf",
-                Filter = "Pdf document (.pdf)|*.pdf"
+                Filter = "Pdf document (.pdf)|*.pdf",
+                Multiselect = true
             };
 
             bool? result = dialog.ShowDialog();
             if (result == true)
             {
-                bool uploadResult = await _fileService.UploadFileAsync(dialog.FileName, _currentHead.Path);
-                if (uploadResult == true)
+                bool updated = false;
+                foreach (var file in dialog.FileNames)
+                {
+                    bool uploadResult = await _fileService.UploadFileAsync(file, _currentHead.Path);
+                    updated = updated || uploadResult;
+                    if (uploadResult == false)
+                    {
+                        MessageBox.Show("File upload failed");
+                    }
+                }
+                if (updated)
                 {
                     FolderTreeControl.Update();
+                    FolderTreeControl.SetSelectedItem(_currentHead);
                 }
-                else
-                {
-                    MessageBox.Show("File upload failed");
-                }
-            }
-        }
 
-        private string copyFile(string filePath)
-        {
-            string name = Path.GetFileName(filePath);
-            string newPath = Path.Combine(_workingFolder, name);
-            File.Copy(filePath, newPath);
-            return newPath;
+            }
         }
 
     }
