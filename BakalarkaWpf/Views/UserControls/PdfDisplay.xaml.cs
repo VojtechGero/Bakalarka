@@ -74,17 +74,17 @@ public partial class PdfDisplay : UserControl
         PdfLoadedDocument doc = new PdfLoadedDocument(pdfFilePath);
         addOcrOutput(ocr);
         PDFView.Load(doc);
+        _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
+        {
+            Path = pdfFilePath,
+            Pages = ocr,
+        }, doc);
         await Task.Run(() =>
         {
             while (!DocumentLoaded) { }
         });
         PDFView.Width = CenterSegment.Width;
         CenterSegment.Children.Remove(progressBar);
-        _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
-        {
-            Path = pdfFilePath,
-            Pages = ocr,
-        }, doc);
         overlayShowed = true;
 
     }
