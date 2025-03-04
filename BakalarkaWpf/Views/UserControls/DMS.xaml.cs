@@ -15,6 +15,7 @@ namespace BakalarkaWpf.Views.UserControls
     public partial class DMS : UserControl
     {
         List<FileItem> _fileItems;
+        FileItem _currentHead;
         private string _workingFolder;
         private readonly ApiFileService _fileService;
         public event EventHandler<FileItem> FileSelected;
@@ -24,6 +25,13 @@ namespace BakalarkaWpf.Views.UserControls
         {
             _workingFolder = workingFolder;
             _fileService = new ApiFileService();
+            _currentHead = new FileItem()
+            {
+                Name = Path.GetFileName(_workingFolder),
+                Path = _workingFolder,
+                IsDirectory = true,
+                SubItems = null
+            };
             InitializeComponent();
             FolderTreeControl.LoadFolderStructure(_workingFolder);
             UpdateItems(_workingFolder);
@@ -45,6 +53,7 @@ namespace BakalarkaWpf.Views.UserControls
             if (fileItem.IsDirectory)
             {
                 await UpdateItems(fileItem.Path);
+                _currentHead = fileItem;
             }
             else
             {
@@ -57,6 +66,7 @@ namespace BakalarkaWpf.Views.UserControls
             {
                 UpdateItems(fileItem.Path);
                 FolderTreeControl.SetSelectedItem(fileItem);
+                _currentHead = fileItem;
             }
             else
             {
@@ -94,7 +104,7 @@ namespace BakalarkaWpf.Views.UserControls
             bool? result = dialog.ShowDialog();
             if (result == true)
             {
-                bool uploadResult = await _fileService.UploadFileAsync(dialog.FileName, _workingFolder);
+                bool uploadResult = await _fileService.UploadFileAsync(dialog.FileName, _currentHead.Path);
                 if (uploadResult == true)
                 {
                     FolderTreeControl.Update();
