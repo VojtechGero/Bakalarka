@@ -59,13 +59,25 @@
                         />
                 </Grid>
             </Border>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Auto"
-                          Grid.Row="1">
-                <StackPanel Name="FilesPanel">
-
-                </StackPanel>
-
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1">
+                <syncfusion:SfTreeGrid x:Name="FilesTreeGrid"
+                           ChildPropertyName="SubItems"
+                           AutoExpandMode="None"
+                           AutoGenerateColumns="False"
+                           MouseDoubleClick="FilesTreeGrid_MouseDoubleClick">
+                    <syncfusion:SfTreeGrid.Columns>
+                        <!-- Checkbox Column -->
+                        <syncfusion:TreeGridTemplateColumn HeaderText="Select">
+                            <syncfusion:TreeGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </syncfusion:TreeGridTemplateColumn.CellTemplate>
+                        </syncfusion:TreeGridTemplateColumn>
+                        <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Name"/>
+                        <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Path"/>
+                    </syncfusion:SfTreeGrid.Columns>
+                </syncfusion:SfTreeGrid>
             </ScrollViewer>
         </Grid>
 

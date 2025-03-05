@@ -124,5 +124,9 @@ namespace BakalarkaWpf.Views.UserControls
             }
         }
 
+        private void FilesTreeGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+
+        }
     }
 }
