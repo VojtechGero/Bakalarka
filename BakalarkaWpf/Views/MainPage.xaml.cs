@@ -17,7 +17,7 @@ public partial class MainPage : Page
         InitializeComponent();
         workingForlder = Path.GetFullPath("./data");
         DataContext = viewModel;
-        _dms = new DMS(workingForlder);
+        _dms = new DMS();
         _dms.FileSelected += Dms_FileSelected;
         _dms.SearchSelected += SearchSelected;
         mainGrid.Children.Add(_dms);

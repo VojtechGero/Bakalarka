@@ -1,11 +1,13 @@
 ﻿using BakalarkaWpf.Models;
 using BakalarkaWpf.Services;
+using Syncfusion.UI.Xaml.TreeGrid;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace BakalarkaWpf.Views.UserControls
 {
@@ -21,10 +23,17 @@ namespace BakalarkaWpf.Views.UserControls
         public event EventHandler<FileItem> FileSelected;
         public event EventHandler<FileResults> SearchSelected;
         SearchWindow _searchWindow = null;
-        public DMS(string workingFolder)
+        public DMS()
         {
-            _workingFolder = workingFolder;
             _fileService = new ApiFileService();
+
+            InitializeComponent();
+            LoadFiles();
+
+        }
+        private async Task LoadFiles()
+        {
+            _workingFolder = await FolderTreeControl.LoadFolderStructure();
             _currentHead = new FileItem()
             {
                 Name = Path.GetFileName(_workingFolder),
@@ -32,21 +41,14 @@ namespace BakalarkaWpf.Views.UserControls
                 IsDirectory = true,
                 SubItems = null
             };
-            InitializeComponent();
-            FolderTreeControl.LoadFolderStructure(_workingFolder);
-            UpdateItems(_workingFolder);
+            await UpdateItems(_workingFolder);
             FolderTreeControl.TreeFileClicked += TreeFileClicked;
         }
+
         public async Task UpdateItems(string path)
         {
             _fileItems = await LoadTopLevelFolderItems(path);
-            FilesPanel.Children.Clear();
-            foreach (FileItem item in _fileItems)
-            {
-                FileDisplay file = new FileDisplay(item);
-                file.ListFileClicked += ListFileClicked;
-                FilesPanel.Children.Add(file);
-            }
+            FilesTreeGrid.ItemsSource = _fileItems; // Bind to TreeGrid
         }
         private async void TreeFileClicked(object sender, FileItem fileItem)
         {
@@ -124,9 +126,26 @@ namespace BakalarkaWpf.Views.UserControls
             }
         }
 
-        private void FilesTreeGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void FilesTreeGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            var treeGrid = sender as SfTreeGrid;
+            var selectedItem = treeGrid.SelectedItem as FileItem;
 
+            if (selectedItem != null)
+            {
+                if (selectedItem.IsDirectory)
+                {
+                    // Navigate into directory
+                    _currentHead = selectedItem;
+                    UpdateItems(selectedItem.Path);
+                    FolderTreeControl.SetSelectedItem(selectedItem);
+                }
+                else
+                {
+                    FileSelected?.Invoke(this, selectedItem);
+                }
+            }
         }
     }
 }
+

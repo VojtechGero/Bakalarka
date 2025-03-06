@@ -61,20 +61,22 @@
             </Border>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1">
                 <syncfusion:SfTreeGrid x:Name="FilesTreeGrid"
-                           ChildPropertyName="SubItems"
-                           AutoExpandMode="None"
-                           AutoGenerateColumns="False"
-                           MouseDoubleClick="FilesTreeGrid_MouseDoubleClick">
+                                       ChildPropertyName="SubItems"
+                                       Width="auto"
+                                       AllowFiltering="True"
+                                       AutoExpandMode="None"
+                                       AutoGenerateColumns="False"
+                                       ColumnSizer="SizeToCells"
+                                       AllowResizingColumns="True"
+                                       FontSize="20"
+                                       RowHeight="35"
+                                       MouseDoubleClick="FilesTreeGrid_MouseDoubleClick"
+                    
+                    ShowCheckBox="True">
                     <syncfusion:SfTreeGrid.Columns>
-                        <!-- Checkbox Column -->
-                        <syncfusion:TreeGridTemplateColumn HeaderText="Select">
-                            <syncfusion:TreeGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
-                                </DataTemplate>
-                            </syncfusion:TreeGridTemplateColumn.CellTemplate>
-                        </syncfusion:TreeGridTemplateColumn>
+                        <!-- Name Column with a fixed width -->
                         <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Name"/>
+                        <!-- Path Column with a fixed width -->
                         <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Path"/>
                     </syncfusion:SfTreeGrid.Columns>
                 </syncfusion:SfTreeGrid>

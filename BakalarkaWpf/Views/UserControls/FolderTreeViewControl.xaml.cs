@@ -51,6 +51,7 @@ namespace BakalarkaWpf.Views.UserControls
                 Directory.CreateDirectory(workingFolder);
             }
             RootFolder = await GetFolderStructure();
+            workingFolder = RootFolder.Path;
             TreeView.ItemsSource = new List<FileItem> { RootFolder };
         }
 
@@ -105,17 +106,14 @@ namespace BakalarkaWpf.Views.UserControls
             return null;
         }
 
-        public async Task LoadFolderStructure(string path)
+        public async Task<string> LoadFolderStructure()
         {
-            workingFolder = path;
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
             RootFolder = await GetFolderStructure();
             TreeView.ItemsSource = new List<FileItem> { RootFolder };
             TreeView.SelectAll();
             SetSelectedItem(RootFolder);
+            workingFolder = RootFolder.Path;
+            return workingFolder;
         }
 
         public void ExpandNode(FileItem item)
