@@ -87,4 +87,19 @@ public class ApiFileService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
+
+    public async Task<Pdf> GetOcrAsync(string path, int height, int width)
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/ocr?path={Uri.EscapeDataString(path)}&height={height}&width={width}";
+            var result = await _httpClient.GetFromJsonAsync<Pdf>(url);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetOcrAsync: {ex.Message}");
+            return null;
+        }
+    }
 }

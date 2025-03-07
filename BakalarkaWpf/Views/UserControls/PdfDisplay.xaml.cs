@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -55,33 +54,13 @@ public partial class PdfDisplay : UserControl
         CenterSegment.Children.Add(progressBar);
 
         await Task.Delay(50);
-        List<OcrPage> ocr = new();
-        string jsonFilePath = Path.ChangeExtension(pdfFilePath, ".json");
         DocumentLoaded = false;
-        if (File.Exists(jsonFilePath))
-        {
-            Pdf data = JsonSerializer.Deserialize<Pdf>(File.ReadAllText(jsonFilePath));
-            ocr = data.Pages;
-        }
-        else
-        {
-            ocr = await PerformOcrOnPdf(pdfFilePath);
-            Pdf newData = new Pdf()
-            {
-                Path = pdfFilePath,
-                Pages = ocr
-            };
-            File.WriteAllText(jsonFilePath, JsonSerializer.Serialize(newData));
-        }
         var stream = await _fileService.GetFileAsync(pdfFilePath);
         PdfLoadedDocument doc = new PdfLoadedDocument(stream);
-        addOcrOutput(ocr);
+        Pdf ocrData = await PerformOcrOnPdf(pdfFilePath, (int)doc.Pages[0].Size.Height, (int)doc.Pages[0].Size.Width);
+        addOcrOutput(ocrData.Pages);
         PDFView.Load(doc);
-        _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
-        {
-            Path = pdfFilePath,
-            Pages = ocr,
-        }, doc);
+        _ocrOverlayManager = new OcrOverlayManager(PDFView, ocrData, doc);
         await Task.Run(() =>
         {
             while (!DocumentLoaded) { }
@@ -91,11 +70,11 @@ public partial class PdfDisplay : UserControl
         overlayShowed = true;
 
     }
-    private Task<List<OcrPage>> PerformOcrOnPdf(string pdfFilePath)
+    private async Task<Pdf> PerformOcrOnPdf(string pdfFilePath, int height, int width)
     {
         try
         {
-            return Services.OcrService.RunOcrOnPdf(pdfFilePath);
+            return await _fileService.GetOcrAsync(pdfFilePath, height, width);
         }
         catch (Exception ex)
         {
