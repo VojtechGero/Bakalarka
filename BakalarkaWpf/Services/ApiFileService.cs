@@ -102,4 +102,68 @@ public class ApiFileService
             return null;
         }
     }
+    public async Task<bool> CopyItemAsync(string selectedItem, string destination)
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/copy?selectedItem={Uri.EscapeDataString(selectedItem)}&destination={Uri.EscapeDataString(destination)}";
+            var response = await _httpClient.GetAsync(url);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error copying item: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> MoveItemAsync(string selectedItem, string destination)
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/move?selectedItem={Uri.EscapeDataString(selectedItem)}&destination={Uri.EscapeDataString(destination)}";
+            var response = await _httpClient.PutAsync(url, null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error moving item: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteItemAsync(string selectedItem)
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/delete?selectedItem={Uri.EscapeDataString(selectedItem)}";
+            var response = await _httpClient.DeleteAsync(url);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting item: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> CreateFolderAsync(string directoryPath)
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/create-folder";
+            var content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("directoryPath", directoryPath)
+            });
+
+            var response = await _httpClient.PostAsync(url, content);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating folder: {ex.Message}");
+            return false;
+        }
+    }
 }
