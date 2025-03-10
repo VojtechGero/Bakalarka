@@ -238,4 +238,17 @@ public partial class PdfDisplay : UserControl
     {
         SearchPanel.Visibility = Visibility.Collapsed;
     }
+
+    private void PreviousSearchPanel_Click(object sender, RoutedEventArgs e)
+    {
+        currentResult--;
+
+        if (currentResult == -1)
+        {
+            currentResult = _results.Count - 1;
+        }
+        PDFView.ScrollTo(_ocrOverlayManager.GetBoxVerticalOffset(_results[currentResult]));
+        highlightResult();
+        ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
+    }
 }

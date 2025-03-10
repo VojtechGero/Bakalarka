@@ -166,4 +166,18 @@ public class ApiFileService
             return false;
         }
     }
+    public async Task<bool> RenameItemAsync(string originalPath, string newName)
+    {
+        try
+        {
+            var url = $"{_apiBaseUrl}File/rename?originalPath={Uri.EscapeDataString(originalPath)}&newName={Uri.EscapeDataString(newName)}";
+            var response = await _httpClient.PutAsync(url, null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error renaming item: {ex.Message}");
+            return false;
+        }
+    }
 }

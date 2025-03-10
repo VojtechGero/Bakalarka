@@ -4,6 +4,7 @@ using Syncfusion.UI.Xaml.TreeGrid;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,8 @@ namespace BakalarkaWpf.Views.UserControls
         public event EventHandler<FileItem> FileSelected;
         public event EventHandler<FileResults> SearchSelected;
         SearchWindow _searchWindow = null;
+        private List<string> _clipboardPaths = new List<string>();
+        private bool _isCopyOperation = false;
         public DMS()
         {
             _fileService = new ApiFileService();
@@ -48,7 +51,7 @@ namespace BakalarkaWpf.Views.UserControls
         public async Task UpdateItems(string path)
         {
             _fileItems = await LoadTopLevelFolderItems(path);
-            FilesTreeGrid.ItemsSource = _fileItems; // Bind to TreeGrid
+            FilesTreeGrid.ItemsSource = _fileItems;
         }
         private async void TreeFileClicked(object sender, FileItem fileItem)
         {
@@ -61,20 +64,6 @@ namespace BakalarkaWpf.Views.UserControls
             {
                 FileSelected?.Invoke(this, fileItem);
             }
-        }
-        private void ListFileClicked(object sender, FileItem fileItem)
-        {
-            if (fileItem.IsDirectory)
-            {
-                UpdateItems(fileItem.Path);
-                FolderTreeControl.SetSelectedItem(fileItem);
-                _currentHead = fileItem;
-            }
-            else
-            {
-                FileSelected?.Invoke(this, fileItem);
-            }
-            //FolderTreeControl.SetSelectedItem(fileItem);
         }
 
         private async Task<List<FileItem>> LoadTopLevelFolderItems(string path)
@@ -135,7 +124,6 @@ namespace BakalarkaWpf.Views.UserControls
             {
                 if (selectedItem.IsDirectory)
                 {
-                    // Navigate into directory
                     _currentHead = selectedItem;
                     UpdateItems(selectedItem.Path);
                     FolderTreeControl.SetSelectedItem(selectedItem);
@@ -145,6 +133,133 @@ namespace BakalarkaWpf.Views.UserControls
                     FileSelected?.Invoke(this, selectedItem);
                 }
             }
+        }
+
+        private async void RenameMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedItem = FilesTreeGrid.SelectedItem as FileItem;
+            if (selectedItem == null) return;
+
+            var dialog = new InputDialog("New name:", selectedItem.Name);
+            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.ResponseText))
+            {
+                bool success = await _fileService.RenameItemAsync(
+                    selectedItem.Path,
+                    dialog.ResponseText
+                );
+
+                if (success)
+                {
+                    await UpdateItems(_currentHead.Path);
+                    FolderTreeControl.Update();
+                }
+                else
+                {
+                    MessageBox.Show("Rename failed.");
+                }
+            }
+        }
+
+        private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedItems = FilesTreeGrid.SelectedItems.Cast<FileItem>().ToList();
+            if (selectedItems.Count == 0) return;
+
+            var result = MessageBox.Show(
+                $"Delete {selectedItems.Count} item(s)?",
+                "Confirm Delete",
+                MessageBoxButton.YesNo
+            );
+
+            if (result != MessageBoxResult.Yes) return;
+
+            bool allSuccess = true;
+            foreach (var item in selectedItems)
+            {
+                bool success = await _fileService.DeleteItemAsync(item.Path);
+                if (!success) allSuccess = false;
+            }
+
+            if (allSuccess)
+            {
+                await UpdateItems(_currentHead.Path);
+                FolderTreeControl.Update();
+            }
+            else
+            {
+                MessageBox.Show("Some items couldn't be deleted.");
+            }
+        }
+
+        private void CopyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            _clipboardPaths = FilesTreeGrid.SelectedItems
+                .Cast<FileItem>()
+                .Select(item => item.Path)
+                .ToList();
+            _isCopyOperation = true;
+        }
+
+        private void MoveMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            _clipboardPaths = FilesTreeGrid.SelectedItems
+                .Cast<FileItem>()
+                .Select(item => item.Path)
+                .ToList();
+            _isCopyOperation = false;
+        }
+
+        private async void NewFolderMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new InputDialog("Folder name:", "New Folder");
+            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.ResponseText))
+            {
+                string newPath = Path.Combine(_currentHead.Path, dialog.ResponseText);
+                bool success = await _fileService.CreateFolderAsync(newPath);
+
+                if (success)
+                {
+                    await UpdateItems(_currentHead.Path);
+                    FolderTreeControl.Update();
+                }
+                else
+                {
+                    MessageBox.Show("Folder creation failed.");
+                }
+            }
+        }
+
+        private async void PasteMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (_clipboardPaths.Count == 0 || _currentHead == null) return;
+
+            bool allSuccess = true;
+            foreach (var sourcePath in _clipboardPaths)
+            {
+                bool success = _isCopyOperation
+                    ? await _fileService.CopyItemAsync(sourcePath, _currentHead.Path)
+                    : await _fileService.MoveItemAsync(sourcePath, _currentHead.Path);
+
+                if (!success) allSuccess = false;
+            }
+
+            if (allSuccess)
+            {
+                await UpdateItems(_currentHead.Path);
+                FolderTreeControl.Update();
+                _clipboardPaths.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Some items couldn't be pasted.");
+            }
+        }
+
+
+        private void FilesTreeGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+
+            PasteMenuItem.IsEnabled = _clipboardPaths.Count > 0;
         }
     }
 }
