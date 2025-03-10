@@ -21,19 +21,34 @@
                  Margin="0,0,0,10"
                  VerticalAlignment="Top" HorizontalAlignment="Left"/>
 
-        <Button x:Name="SearchButton"
+        <StackPanel 
+            Grid.Row="1"
+            Orientation="Horizontal">
+            <Button x:Name="SearchButton"
                 Grid.Row="1"
                 Width="100"
                 Height="30"
                 Content="Search"
                 FontSize="20"
+                    Margin="5"
                 VerticalAlignment="Top" 
                 HorizontalAlignment="Left"
                 Click="SearchButton_Click"/>
+            <Button x:Name="ExportButton"
+                Width="100"
+                Height="30"
+                Content="Export"
+                FontSize="20"
+                    Margin="5"
+                VerticalAlignment="Top" 
+                HorizontalAlignment="Left"
+                Click="ExportButton_Click"/>
+        </StackPanel>
 
         <ListBox x:Name="ResultsListBox"
                  Grid.Row="2"
                  Margin="0,10,0,0"
+                 FontSize="20"
                  MouseDoubleClick="ResultsListBox_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>

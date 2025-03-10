@@ -59,13 +59,40 @@
                         />
                 </Grid>
             </Border>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Auto"
-                          Grid.Row="1">
-                <StackPanel Name="FilesPanel">
-
-                </StackPanel>
-
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1">
+                <syncfusion:SfTreeGrid x:Name="FilesTreeGrid"
+                                       ChildPropertyName="SubItems"
+                                       Width="auto"
+                                       AllowFiltering="True"
+                                       AutoExpandMode="None"
+                                       AutoGenerateColumns="False"
+                                       ColumnSizer="AutoFillColumn"
+                                       AllowResizingColumns="True"
+                                       FontSize="20"
+                                       RowHeight="35"
+                                       ContextMenuOpening="FilesTreeGrid_ContextMenuOpening"
+                                       MouseDoubleClick="FilesTreeGrid_MouseDoubleClick"
+                    
+                    ShowCheckBox="True">
+                    <syncfusion:SfTreeGrid.ContextMenu>
+                        <ContextMenu DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <MenuItem Header="Kopírovat" Click="CopyMenuItem_Click"/>
+                            <MenuItem Header="Vyjmout" Click="MoveMenuItem_Click"/>
+                            <MenuItem Header="Vložit" Click="PasteMenuItem_Click" Name="PasteMenuItem"/>
+                            <Separator/>
+                            <MenuItem Header="Přejmenovat" Click="RenameMenuItem_Click"/>
+                            <MenuItem Header="Smazat" Click="DeleteMenuItem_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Nová složka" Click="NewFolderMenuItem_Click"/>
+                        </ContextMenu>
+                    </syncfusion:SfTreeGrid.ContextMenu>
+                    <syncfusion:SfTreeGrid.Columns>
+                        <!-- Name Column with a fixed width -->
+                        <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Name"/>
+                        <!-- Path Column with a fixed width -->
+                        <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Path"/>
+                    </syncfusion:SfTreeGrid.Columns>
+                </syncfusion:SfTreeGrid>
             </ScrollViewer>
         </Grid>
 

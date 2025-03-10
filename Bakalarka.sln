@@ -5,10 +5,6 @@ VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BakalarkaWpf", "BakalarkaWpf\BakalarkaWpf.csproj", "{F6BB6EC2-FC80-4A2F-AC40-D9BE76DE8263}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OCR", "OCR\OCR.csproj", "{B8FDCAD7-9016-4D27-BD7A-586D65575A86}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{6B4C8D54-AB2B-47B1-9C7A-89649B6D9173}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{F6BB6EC2-FC80-4A2F-AC40-D9BE76DE8263}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6BB6EC2-FC80-4A2F-AC40-D9BE76DE8263}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6BB6EC2-FC80-4A2F-AC40-D9BE76DE8263}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B8FDCAD7-9016-4D27-BD7A-586D65575A86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B8FDCAD7-9016-4D27-BD7A-586D65575A86}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B8FDCAD7-9016-4D27-BD7A-586D65575A86}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B8FDCAD7-9016-4D27-BD7A-586D65575A86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6B4C8D54-AB2B-47B1-9C7A-89649B6D9173}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6B4C8D54-AB2B-47B1-9C7A-89649B6D9173}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6B4C8D54-AB2B-47B1-9C7A-89649B6D9173}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6B4C8D54-AB2B-47B1-9C7A-89649B6D9173}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -37,4 +37,39 @@ public partial class SearchWindow : Window
             SearchSelected?.Invoke(this, selectedItem);
         }
     }
+
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_results == null || _results.Count == 0)
+        {
+            MessageBox.Show("No search results to export.", "Export Error",
+                          MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+        {
+            FileName = "SearchResults",
+            DefaultExt = ".xlsx",
+            Filter = "Excel Files (.xlsx)|*.xlsx",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+        };
+
+        if (saveFileDialog.ShowDialog() == true)
+        {
+            try
+            {
+                var exportService = new ExcelExportService();
+                exportService.ExportToExcel(_results, saveFileDialog.FileName);
+
+                MessageBox.Show("Results exported successfully!", "Export Complete",
+                               MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error exporting results: {ex.Message}", "Export Error",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
 }

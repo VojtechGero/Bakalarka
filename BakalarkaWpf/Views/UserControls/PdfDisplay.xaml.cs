@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,9 +17,10 @@ namespace BakalarkaWpf.Views.UserControls;
 /// </summary>
 public partial class PdfDisplay : UserControl
 {
-    public FileItem fileItem;
+    public FileItem _fileItem;
     private OcrOverlayManager _ocrOverlayManager;
     private ApiSearchService _searchService;
+    private ApiFileService _fileService;
     private bool DocumentLoaded = false;
     private bool overlayShowed = false;
     public EventHandler BackButtonPressed;
@@ -29,7 +29,7 @@ public partial class PdfDisplay : UserControl
     public PdfDisplay(FileItem fileItem)
     {
         InitializeComponent();
-        this.fileItem = fileItem;
+        this._fileItem = fileItem;
         PDFView.ToolbarSettings.ShowZoomTools = false;
         PDFView.ToolbarSettings.ShowFileTools = false;
         PDFView.ToolbarSettings.ShowAnnotationTools = false;
@@ -41,6 +41,7 @@ public partial class PdfDisplay : UserControl
         PDFView.FormSettings.IsIconVisible = false;
         PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         _searchService = new ApiSearchService();
+        _fileService = new ApiFileService();
     }
 
     private async Task LoadFile(string pdfFilePath)
@@ -53,46 +54,27 @@ public partial class PdfDisplay : UserControl
         CenterSegment.Children.Add(progressBar);
 
         await Task.Delay(50);
-        List<OcrPage> ocr = new();
-        string jsonFilePath = Path.ChangeExtension(pdfFilePath, ".json");
         DocumentLoaded = false;
-        if (File.Exists(jsonFilePath))
-        {
-            Pdf data = JsonSerializer.Deserialize<Pdf>(File.ReadAllText(jsonFilePath));
-            ocr = data.Pages;
-        }
-        else
-        {
-            ocr = await PerformOcrOnPdf(pdfFilePath);
-            Pdf newData = new Pdf()
-            {
-                Path = pdfFilePath,
-                Pages = ocr
-            };
-            File.WriteAllText(jsonFilePath, JsonSerializer.Serialize(newData));
-        }
-        PdfLoadedDocument doc = new PdfLoadedDocument(pdfFilePath);
-        addOcrOutput(ocr);
+        var stream = await _fileService.GetFileAsync(pdfFilePath);
+        PdfLoadedDocument doc = new PdfLoadedDocument(stream);
+        Pdf ocrData = await PerformOcrOnPdf(pdfFilePath, (int)doc.Pages[0].Size.Height, (int)doc.Pages[0].Size.Width);
+        addOcrOutput(ocrData.Pages);
         PDFView.Load(doc);
+        _ocrOverlayManager = new OcrOverlayManager(PDFView, ocrData, doc);
         await Task.Run(() =>
         {
             while (!DocumentLoaded) { }
         });
         PDFView.Width = CenterSegment.Width;
         CenterSegment.Children.Remove(progressBar);
-        _ocrOverlayManager = new OcrOverlayManager(PDFView, new Pdf
-        {
-            Path = pdfFilePath,
-            Pages = ocr,
-        }, doc);
         overlayShowed = true;
 
     }
-    private Task<List<OcrPage>> PerformOcrOnPdf(string pdfFilePath)
+    private async Task<Pdf> PerformOcrOnPdf(string pdfFilePath, int height, int width)
     {
         try
         {
-            return Services.OcrService.RunOcrOnPdf(pdfFilePath);
+            return await _fileService.GetOcrAsync(pdfFilePath, height, width);
         }
         catch (Exception ex)
         {
@@ -141,7 +123,7 @@ public partial class PdfDisplay : UserControl
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        LoadFile(fileItem.Path);
+        LoadFile(_fileItem.Path);
     }
 
     private void PDFView_ZoomChanged(object sender, Syncfusion.Windows.PdfViewer.ZoomEventArgs args)
@@ -186,7 +168,7 @@ public partial class PdfDisplay : UserControl
         var searchTerm = SearchTextBox.Text;
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            _results = await _searchService.GetFileResults(searchTerm, this.fileItem.Path);
+            _results = await _searchService.GetFileResults(searchTerm, this._fileItem.Path);
             currentResult = 0;
             if (_results.Count > 0)
             {
@@ -214,7 +196,7 @@ public partial class PdfDisplay : UserControl
         SearchTextBox.Text = fileResult.Query;
         if (!string.IsNullOrWhiteSpace(fileResult.Query))
         {
-            _results = await _searchService.GetFileResults(fileResult.Query, this.fileItem.Path);
+            _results = await _searchService.GetFileResults(fileResult.Query, this._fileItem.Path);
             currentResult = 0;
             if (_results.Count > 0)
             {
@@ -247,7 +229,7 @@ public partial class PdfDisplay : UserControl
         {
             currentResult = 0;
         }
-        PDFView.GoToPageAtIndex(_results[currentResult].PageNumber);
+        PDFView.ScrollTo(_ocrOverlayManager.GetBoxVerticalOffset(_results[currentResult]));
         highlightResult();
         ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
     }
@@ -255,5 +237,18 @@ public partial class PdfDisplay : UserControl
     private void CloseSearchPanel_Click(object sender, RoutedEventArgs e)
     {
         SearchPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void PreviousSearchPanel_Click(object sender, RoutedEventArgs e)
+    {
+        currentResult--;
+
+        if (currentResult == -1)
+        {
+            currentResult = _results.Count - 1;
+        }
+        PDFView.ScrollTo(_ocrOverlayManager.GetBoxVerticalOffset(_results[currentResult]));
+        highlightResult();
+        ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
     }
 }
