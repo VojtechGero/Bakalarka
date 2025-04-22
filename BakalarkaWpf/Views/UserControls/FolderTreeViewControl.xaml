@@ -8,26 +8,34 @@
              xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             x:Name="FolderTreeView">
+             x:Name="FolderTreeView"
+             FontSize="24">
+    <!-- Base font size increased -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                  HorizontalScrollBarVisibility="Auto">
+                  HorizontalScrollBarVisibility="Auto"
+                  FontSize="24">
+        <!-- Scroll viewer font size -->
         <syncfusion:SfTreeView x:Name="TreeView"
                                ItemsSource="{Binding RootFolder.SubItems, ElementName=FolderTreeView}"
                                ChildPropertyName="SubItems"
-                               SelectionChanged="TreeView_SelectionChanged">
+                               SelectionChanged="TreeView_SelectionChanged"
+                               ItemHeight="40">
+            <!-- Increased row height -->
 
             <syncfusion:SfTreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type models:FileItem}" 
                                           ItemsSource="{Binding SubItems}">
-                    <TextBlock Text="{Binding Name}">
+                    <TextBlock Text="{Binding Name}" Padding="5,0">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Normal"/>
-                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="FontSize" Value="24"/>
+                                <!-- Increased from 14 -->
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsDirectory}" Value="True">
                                         <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="FontSize" Value="14"/>
+                                        <Setter Property="FontSize" Value="24"/>
+                                        <!-- Increased from 14 -->
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

@@ -6,7 +6,9 @@
              xmlns:local="clr-namespace:BakalarkaWpf.Views.UserControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             d:Background="White">
+             d:Background="White"
+             FontSize="24">
+    <!-- Increased base font size for the entire control -->
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
@@ -14,7 +16,9 @@
         </Grid.ColumnDefinitions>
         <Border Grid.Column="0" BorderThickness="0 0 1 0" BorderBrush="Black">
             <ScrollViewer  VerticalScrollBarVisibility="Auto" 
-                        HorizontalScrollBarVisibility="Auto" >
+                        HorizontalScrollBarVisibility="Auto"
+                        FontSize="24">
+                <!-- Increased font size for folder tree -->
                 <local:FolderTreeViewControl
                 x:Name="FolderTreeControl" 
                 Margin="10"/>
@@ -37,21 +41,21 @@
                         Height="50"
                         HorizontalAlignment="Left"
                         Margin="20"
-                        FontSize="20"
+                        FontSize="20" 
                         FontWeight="Bold"
                         Label="Přidat soubor"
                         Name="AddButton"
                         SmallIcon="{x:Null}" 
                         Click="AddButton_Click"
                         />
-                    <syncfusion:ButtonAdv 
+                        <syncfusion:ButtonAdv 
                         Grid.Column="1"
                         Width="150"
                         Height="50"
                         HorizontalAlignment="Right"
                         Margin="20"
                         FontSize="20"
-                        FontWeight="Bold"
+                            FontWeight="Bold"
                         Label="Vyhledávání"
                         Name="SearchButton"
                         Click="SearchButton_Click"
@@ -68,14 +72,14 @@
                                        AutoGenerateColumns="False"
                                        ColumnSizer="AutoFillColumn"
                                        AllowResizingColumns="True"
-                                       FontSize="20"
-                                       RowHeight="35"
-                                       ContextMenuOpening="FilesTreeGrid_ContextMenuOpening"
-                                       MouseDoubleClick="FilesTreeGrid_MouseDoubleClick"
-                    
-                    ShowCheckBox="True">
+                                       FontSize="24"
+                    RowHeight="45"
+                    ContextMenuOpening="FilesTreeGrid_ContextMenuOpening"
+                                       MouseDoubleClick="FilesTreeGrid_MouseDoubleClick">
                     <syncfusion:SfTreeGrid.ContextMenu>
-                        <ContextMenu DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <ContextMenu DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                     FontSize="24">
+                            <!-- Increased context menu font size -->
                             <MenuItem Header="Kopírovat" Click="CopyMenuItem_Click"/>
                             <MenuItem Header="Vyjmout" Click="MoveMenuItem_Click"/>
                             <MenuItem Header="Vložit" Click="PasteMenuItem_Click" Name="PasteMenuItem"/>
@@ -87,14 +91,11 @@
                         </ContextMenu>
                     </syncfusion:SfTreeGrid.ContextMenu>
                     <syncfusion:SfTreeGrid.Columns>
-                        <!-- Name Column with a fixed width -->
                         <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Name"/>
-                        <!-- Path Column with a fixed width -->
                         <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Path"/>
                     </syncfusion:SfTreeGrid.Columns>
                 </syncfusion:SfTreeGrid>
             </ScrollViewer>
         </Grid>
-
     </Grid>
 </UserControl>

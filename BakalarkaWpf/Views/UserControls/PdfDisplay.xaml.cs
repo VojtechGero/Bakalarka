@@ -96,6 +96,7 @@ public partial class PdfDisplay : UserControl
             {
                 Height = double.NaN,
                 Width = double.NaN,
+                FontSize = 20,
                 TextWrapping = TextWrapping.Wrap,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Top,

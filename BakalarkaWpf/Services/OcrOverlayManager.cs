@@ -99,15 +99,15 @@ public class OcrOverlayManager
             {
                 var rectangle = new Rectangle
                 {
-                    Width = ocrBox.Rectangle.Width * zoomFactor,
-                    Height = ocrBox.Rectangle.Height * zoomFactor,
+                    Width = ocrBox.Width * zoomFactor,
+                    Height = ocrBox.Height * zoomFactor,
                     Stroke = Brushes.Blue,
                     StrokeThickness = 1,
                     Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 }
                 };
 
-                Canvas.SetLeft(rectangle, ocrBox.Rectangle.X * zoomFactor);
-                Canvas.SetTop(rectangle, verticalOffset + (ocrBox.Rectangle.Y * zoomFactor));
+                Canvas.SetLeft(rectangle, ocrBox.X * zoomFactor);
+                Canvas.SetTop(rectangle, verticalOffset + (ocrBox.Y * zoomFactor));
 
                 ToolTipService.SetToolTip(rectangle, ocrBox.Text);
                 _overlayCanvas.Children.Add(rectangle);

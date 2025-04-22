@@ -17,9 +17,9 @@ public class ExcelExportService
             IWorkbook workbook = application.Workbooks.Create(1);
             IWorksheet worksheet = workbook.Worksheets[0];
 
-            worksheet.Range["A1"].Text = "Query";
-            worksheet.Range["B1"].Text = "File Path";
-            worksheet.Range["C1"].Text = "Occurrences";
+            worksheet.Range["A1"].Text = "Dotaz";
+            worksheet.Range["B1"].Text = "Cesta k s souboru";
+            worksheet.Range["C1"].Text = "Počet výskytů";
 
             worksheet.Range["A1:C1"].CellStyle.Font.Bold = true;
             worksheet.Range["A1:C1"].CellStyle.HorizontalAlignment = ExcelHAlign.HAlignCenter;

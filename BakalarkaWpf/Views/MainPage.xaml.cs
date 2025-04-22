@@ -68,21 +68,4 @@ public partial class MainPage : Page
         mainGrid.Children.Add(_dms);
     }
 
-    private async void LoadButtonClick(object sender, System.Windows.RoutedEventArgs e)
-    {
-
-    }
-
-    private string copyFile(string filePath)
-    {
-        string name = Path.GetFileName(filePath);
-        string newPath = Path.Combine(workingForlder, name);
-        File.Copy(filePath, newPath);
-        //FolderTreeControl.Update();
-        return newPath;
-    }
-
-
-
-
 }

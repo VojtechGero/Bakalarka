@@ -9,15 +9,15 @@
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="800"
              Loaded="UserControl_Loaded">
+    <!-- Base font size for the control -->
 
     <Grid>
-        <!-- Define the layout rows -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <!-- TOP TOOLBAR (Row 0) -->
+        <!-- TOP TOOLBAR -->
         <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0 0 0 2">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -26,8 +26,8 @@
                 </Grid.ColumnDefinitions>
                 <syncfusion:ButtonAdv 
                     Grid.Column="0"
-                    Width="150"
-                    Height="50"
+                    Width="180"  
+                    Height="60"
                     Label="Zpět"
                     FontSize="20"
                     FontWeight="Bold"
@@ -36,12 +36,13 @@
                     Click="BackButton_Click"
                     HorizontalAlignment="Left"
                     Margin="20" />
-                <syncfusion:ButtonAdv 
+                    <syncfusion:ButtonAdv 
                     Grid.Column="1"
-                    Width="150"
-                    Height="50"
-                    FontSize="20"
-                    FontWeight="Bold"
+                    Width="180"
+                        Height="60"
+                        
+                        FontSize="20"
+                        FontWeight="Bold"
                     Label="Vyhledávání"
                     SmallIcon="{x:Null}" 
                     Name="SearchButton"
@@ -51,11 +52,12 @@
             </Grid>
         </Border>
 
-        <!-- MAIN CONTENT (Row 1) -->
+        <!-- MAIN CONTENT -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="300"/>
+                <!-- Wider side panel -->
             </Grid.ColumnDefinitions>
 
             <!-- PDF VIEWER AREA -->
@@ -69,25 +71,28 @@
                     ZoomChanged="PDFView_ZoomChanged"/>
             </Grid>
 
-            <!-- OCR BUTTON + OUTPUT PANEL -->
+            <!-- OCR PANEL -->
             <Grid Grid.Column="1">
                 <Border BorderThickness="2 0 0 0" BorderBrush="Black">
-                    <StackPanel Margin="5">
+                    <StackPanel Margin="10">
                         <syncfusion:ButtonAdv
-                            Width="150"
-                            Margin="5"
+                            Width="200" 
+                            Height="60"
+                            Margin="10"
                             SmallIcon="{x:Null}"
-                            Label="Ocr"
+                            Label="OCR"
                             FontSize="20"
                             Name="OcrButton"
                             Click="OcrButton_Click"/>
-                        <StackPanel Name="OcrOutput" />
-                    </StackPanel>
+                            <StackPanel Name="OcrOutput" 
+                                   
+                                Margin="10"/>
+                            </StackPanel>
                 </Border>
             </Grid>
         </Grid>
 
-        <!-- FLOATING SEARCH PANEL (Overlay) -->
+        <!-- SEARCH PANEL -->
         <Border x:Name="SearchPanel"
                 Visibility="Collapsed"
                 HorizontalAlignment="Center"
@@ -95,8 +100,8 @@
                 Background="White"
                 BorderBrush="Gray"
                 BorderThickness="1"
-                Margin="0,20"
-                Padding="15"
+                Margin="0,30"
+                Padding="20"
                 CornerRadius="5"
                 Panel.ZIndex="1"
                 Grid.RowSpan="2">
@@ -105,33 +110,44 @@
             </Border.Effect>
             <StackPanel>
                 <TextBox x:Name="SearchTextBox" 
-                         Width="450" 
-                         Margin="0,0,0,10"
-                         FontSize="16"/>
-                <StackPanel Orientation="Horizontal" 
+                         Width="500" 
+                         Height="40"
+                         Margin="0,0,0,15"
+                         FontSize="24"
+                    Padding="5"/>
+                    <StackPanel Orientation="Horizontal" 
                             HorizontalAlignment="Right">
-                    <syncfusion:ButtonAdv
+                        <syncfusion:ButtonAdv
                         Label="Hledat"
-                        Width="80"
-                        Margin="0,0,10,0"
+                        Width="120" 
+                            Height="40"
+                        Margin="0,0,15,0"
+                        FontSize="24"
                         Click="ExecuteSearch_Click"/>
-                    <syncfusion:ButtonAdv
+                            <syncfusion:ButtonAdv
                         Label="Další"
-                        Width="80"
-                        Margin="0,0,10,0"
+                        Width="120"
+                        Height="40"
+                        Margin="0,0,15,0"
+                        FontSize="24"
                         Click="NextResult_Click"/>
-                    <syncfusion:ButtonAdv
+                            <syncfusion:ButtonAdv
                         Label="Minulý"
-                        Width="80"
-                        Margin="0,0,10,0"
+                        Width="120"
+                        Height="40"
+                        Margin="0,0,15,0"
+                        FontSize="24"
                         Click="PreviousSearchPanel_Click"/>
-                    <syncfusion:ButtonAdv
+                            <syncfusion:ButtonAdv
                         Label="Zavřít"
-                        Width="80"
+                        Width="120"
+                        Height="40"
+                        FontSize="24"
                         Click="CloseSearchPanel_Click"/>
-                </StackPanel>
-                <TextBlock x:Name="ResultCounter"
-                           Margin="0,10,0,0"
+                    </StackPanel>
+                    <TextBlock x:Name="ResultCounter"
+                           Margin="0,15,0,0"
+                           FontSize="24" 
                            HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
