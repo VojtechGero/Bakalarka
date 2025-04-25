@@ -1,5 +1,6 @@
 ﻿using BakalarkaWpf.Models;
 using BakalarkaWpf.Services;
+using Syncfusion.Pdf.Parsing;
 using Syncfusion.UI.Xaml.TreeGrid;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,13 @@ public partial class DMS : UserControl
 
         InitializeComponent();
         LoadFiles();
+        FolderTreeControl.InitTree();
 
+    }
+    public void UpdateFolderTreeView()
+    {
+
+        FolderTreeControl.SetSelectedItem(_currentHead);
     }
     private async Task LoadFiles()
     {
@@ -52,6 +59,11 @@ public partial class DMS : UserControl
     {
         _fileItems = await LoadTopLevelFolderItems(path);
         FilesTreeGrid.ItemsSource = _fileItems;
+        FilesTreeGrid.ColumnSizer = TreeColumnSizer.Auto;
+        this.InvalidateVisual();
+        this.UpdateLayout();
+        FilesTreeGrid.ColumnSizer = TreeColumnSizer.SizeToCells;
+
     }
     private async void TreeFileClicked(object sender, FileItem fileItem)
     {
@@ -87,9 +99,9 @@ public partial class DMS : UserControl
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            FileName = "Document",
+            FileName = "Dokument",
             DefaultExt = ".pdf",
-            Filter = "Pdf document (.pdf)|*.pdf",
+            Filter = "Pdf dokument (.pdf)|*.pdf",
             Multiselect = true
         };
 
@@ -103,12 +115,26 @@ public partial class DMS : UserControl
                 updated = updated || uploadResult;
                 if (uploadResult == false)
                 {
-                    MessageBox.Show("File upload failed");
+                    MessageBox.Show($"Nahrávání dokumentu {Path.GetFileName(file)} selhalo");
+                    continue;
                 }
+                try
+                {
+                    PdfLoadedDocument doc = new PdfLoadedDocument(file);
+                    await _fileService.GetOcrAsync(Path.Combine(_currentHead.Path, Path.GetFileName(file)), (int)doc.Pages[0].Size.Height, (int)doc.Pages[0].Size.Width);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    Clipboard.SetText(ex.Message);
+                }
+
             }
             if (updated)
             {
-                FolderTreeControl.Update();
+
+                await UpdateItems(_currentHead.Path);
+                await FolderTreeControl.Update();
                 FolderTreeControl.SetSelectedItem(_currentHead);
             }
 
@@ -140,7 +166,7 @@ public partial class DMS : UserControl
         var selectedItem = FilesTreeGrid.SelectedItem as FileItem;
         if (selectedItem == null) return;
 
-        var dialog = new InputDialog("New name:", selectedItem.Name);
+        var dialog = new InputDialog("Nové jméno:", selectedItem.Name);
         if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.ResponseText))
         {
             bool success = await _fileService.RenameItemAsync(
@@ -151,11 +177,12 @@ public partial class DMS : UserControl
             if (success)
             {
                 await UpdateItems(_currentHead.Path);
-                FolderTreeControl.Update();
+                await FolderTreeControl.Update();
+                FolderTreeControl.SetSelectedItem(_currentHead);
             }
             else
             {
-                MessageBox.Show("Rename failed.");
+                MessageBox.Show("Přejmenování selhalo.");
             }
         }
     }
@@ -166,8 +193,8 @@ public partial class DMS : UserControl
         if (selectedItems.Count == 0) return;
 
         var result = MessageBox.Show(
-            $"Delete {selectedItems.Count} item(s)?",
-            "Confirm Delete",
+            $"Chcete smazat položku?",
+            "Potvrdit smazání",
             MessageBoxButton.YesNo
         );
 
@@ -183,7 +210,8 @@ public partial class DMS : UserControl
         if (allSuccess)
         {
             await UpdateItems(_currentHead.Path);
-            FolderTreeControl.Update();
+            await FolderTreeControl.Update();
+            FolderTreeControl.SetSelectedItem(_currentHead);
         }
         else
         {
@@ -246,12 +274,13 @@ public partial class DMS : UserControl
         if (allSuccess)
         {
             await UpdateItems(_currentHead.Path);
-            FolderTreeControl.Update();
+            await FolderTreeControl.Update();
+            FolderTreeControl.SetSelectedItem(_currentHead);
             _clipboardPaths.Clear();
         }
         else
         {
-            MessageBox.Show("Some items couldn't be pasted.");
+            MessageBox.Show("Vkládání selhalo.");
         }
     }
 

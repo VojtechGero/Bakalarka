@@ -12,7 +12,7 @@ public partial class MyProgressBar : UserControl
     {
         InitializeComponent();
         this.filePath = filePath;
-        nameLabel.Content = $"Performing OCR on {filePath}";
+        nameLabel.Content = $"Získávání přepisu dokumentu: {filePath}";
     }
 
 }

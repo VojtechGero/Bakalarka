@@ -66,14 +66,13 @@
                                        AllowFiltering="True"
                                        AutoExpandMode="None"
                                        AutoGenerateColumns="False"
-                                       ColumnSizer="AutoFillColumn"
+                                       ColumnSizer="Auto"
                                        AllowResizingColumns="True"
                                        FontSize="20"
                                        RowHeight="35"
                                        ContextMenuOpening="FilesTreeGrid_ContextMenuOpening"
                                        MouseDoubleClick="FilesTreeGrid_MouseDoubleClick"
-                    
-                    ShowCheckBox="True">
+                                       >
                     <syncfusion:SfTreeGrid.ContextMenu>
                         <ContextMenu DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
                             <MenuItem Header="Kopírovat" Click="CopyMenuItem_Click"/>
@@ -88,9 +87,9 @@
                     </syncfusion:SfTreeGrid.ContextMenu>
                     <syncfusion:SfTreeGrid.Columns>
                         <!-- Name Column with a fixed width -->
-                        <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Name"/>
+                        <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Název"/>
                         <!-- Path Column with a fixed width -->
-                        <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Path"/>
+                        <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Cesta"/>
                     </syncfusion:SfTreeGrid.Columns>
                 </syncfusion:SfTreeGrid>
             </ScrollViewer>

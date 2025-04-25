@@ -11,13 +11,11 @@
              Loaded="UserControl_Loaded">
 
     <Grid>
-        <!-- Define the layout rows -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <!-- TOP TOOLBAR (Row 0) -->
         <Border Grid.Row="0" BorderBrush="Black" BorderThickness="0 0 0 2">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -51,43 +49,40 @@
             </Grid>
         </Border>
 
-        <!-- MAIN CONTENT (Row 1) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="250"/>
             </Grid.ColumnDefinitions>
 
-            <!-- PDF VIEWER AREA -->
             <Grid Name="CenterSegment" Grid.Column="0">
                 <PdfViewer:PdfViewerControl
                     Name="PDFView"
-                    DocumentLoaded="PDFView_DocumentLoaded"
                     ShowHorizontalScrollBar="False"
                     ScrollChanged="PDFView_ScrollChanged"
                     ZoomMode="FitWidth"
                     ZoomChanged="PDFView_ZoomChanged"/>
             </Grid>
 
-            <!-- OCR BUTTON + OUTPUT PANEL -->
             <Grid Grid.Column="1">
                 <Border BorderThickness="2 0 0 0" BorderBrush="Black">
-                    <StackPanel Margin="5">
-                        <syncfusion:ButtonAdv
-                            Width="150"
-                            Margin="5"
-                            SmallIcon="{x:Null}"
-                            Label="Ocr"
-                            FontSize="20"
-                            Name="OcrButton"
-                            Click="OcrButton_Click"/>
-                        <StackPanel Name="OcrOutput" />
-                    </StackPanel>
+                    <ScrollViewer Margin="5" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <syncfusion:ButtonAdv
+                                Width="150"
+                                Margin="5"
+                                SmallIcon="{x:Null}"
+                                Label="Ocr"
+                                FontSize="20"
+                                Name="OcrButton"
+                                Click="OcrButton_Click"/>
+                            <StackPanel Name="OcrOutput" />
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </Grid>
 
-        <!-- FLOATING SEARCH PANEL (Overlay) -->
         <Border x:Name="SearchPanel"
                 Visibility="Collapsed"
                 HorizontalAlignment="Center"

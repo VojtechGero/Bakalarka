@@ -22,16 +22,11 @@ namespace BakalarkaWpf.Views.UserControls
         {
             InitializeComponent();
             _fileService = new ApiFileService();
-            TreeView.Loaded += TreeView_Loaded;
         }
 
-        private void TreeView_Loaded(object sender, RoutedEventArgs e)
+        public void InitTree()
         {
             TreeView.SelectAll();
-            SetSelectedItem(RootFolder);
-        }
-        public void SelectFirst()
-        {
             SetSelectedItem(RootFolder);
         }
         public static readonly DependencyProperty RootFolderProperty =
@@ -80,12 +75,29 @@ namespace BakalarkaWpf.Views.UserControls
             isProgrammaticSelection = true;
             TreeView.SelectedItems.Clear();
             TreeView.SelectedItems.Add(target);
-            if (item.IsDirectory)
+
+            // Expand all parent nodes to ensure visibility
+            ExpandParentNodes(target);
+
+            if (target.IsDirectory)
             {
-                ExpandNode(item);
+                ExpandNode(target);
             }
             TreeView.BringIntoView(target);
             isProgrammaticSelection = false;
+        }
+
+        private void ExpandParentNodes(FileItem item)
+        {
+            var node = FindTreeNode(item);
+            if (node == null) return;
+
+            var parentNode = node.ParentNode;
+            while (parentNode != null)
+            {
+                TreeView.ExpandNode(parentNode);
+                parentNode = parentNode.ParentNode;
+            }
         }
         private FileItem FindItemByPath(FileItem root, string path)
         {

@@ -9,13 +9,11 @@ namespace BakalarkaWpf.Views;
 
 public partial class MainPage : Page
 {
-    private string workingForlder;
     private DMS _dms;
     private PdfDisplay? _PdfDisplay = null;
     public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
-        workingForlder = Path.GetFullPath("./data");
         DataContext = viewModel;
         _dms = new DMS();
         _dms.FileSelected += Dms_FileSelected;
@@ -66,21 +64,9 @@ public partial class MainPage : Page
     {
         mainGrid.Children.Clear();
         mainGrid.Children.Add(_dms);
+        _dms.UpdateFolderTreeView();
     }
 
-    private async void LoadButtonClick(object sender, System.Windows.RoutedEventArgs e)
-    {
-
-    }
-
-    private string copyFile(string filePath)
-    {
-        string name = Path.GetFileName(filePath);
-        string newPath = Path.Combine(workingForlder, name);
-        File.Copy(filePath, newPath);
-        //FolderTreeControl.Update();
-        return newPath;
-    }
 
 
 

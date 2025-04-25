@@ -53,18 +53,19 @@ public partial class PdfDisplay : UserControl
         };
         CenterSegment.Children.Add(progressBar);
 
-        await Task.Delay(50);
         DocumentLoaded = false;
         var stream = await _fileService.GetFileAsync(pdfFilePath);
         PdfLoadedDocument doc = new PdfLoadedDocument(stream);
-        Pdf ocrData = await PerformOcrOnPdf(pdfFilePath, (int)doc.Pages[0].Size.Height, (int)doc.Pages[0].Size.Width);
+        Pdf ocrData = await PerformOcrOnPdf(pdfFilePath, 0, 0);
         addOcrOutput(ocrData.Pages);
         PDFView.Load(doc);
         _ocrOverlayManager = new OcrOverlayManager(PDFView, ocrData, doc);
+        /*
         await Task.Run(() =>
         {
             while (!DocumentLoaded) { }
         });
+        */
         PDFView.Width = CenterSegment.Width;
         CenterSegment.Children.Remove(progressBar);
         overlayShowed = true;
@@ -115,10 +116,6 @@ public partial class PdfDisplay : UserControl
             OcrOutput.Children.Add(label);
             OcrOutput.Children.Add(textBox);
         }
-    }
-    private void PDFView_DocumentLoaded(object sender, EventArgs args)
-    {
-        DocumentLoaded = true;
     }
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
