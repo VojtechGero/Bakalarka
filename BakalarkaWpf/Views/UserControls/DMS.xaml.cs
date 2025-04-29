@@ -108,9 +108,16 @@ public partial class DMS : UserControl
         bool? result = dialog.ShowDialog();
         if (result == true)
         {
+            var progressBar = new MyProgressBar()
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            CenterSegment.Children.Add(progressBar);
             bool updated = false;
             foreach (var file in dialog.FileNames)
             {
+                progressBar.UpdateMessage($"Získávání přepisu dokumentu: {Path.GetFileName(file)}");
                 bool uploadResult = await _fileService.UploadFileAsync(file, _currentHead.Path);
                 updated = updated || uploadResult;
                 if (uploadResult == false)
@@ -137,7 +144,7 @@ public partial class DMS : UserControl
                 await FolderTreeControl.Update();
                 FolderTreeControl.SetSelectedItem(_currentHead);
             }
-
+            CenterSegment.Children.Remove(progressBar);
         }
     }
 

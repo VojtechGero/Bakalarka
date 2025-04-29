@@ -71,7 +71,7 @@ public class OcrOverlayManager
         if (_loadedDocument.Pages.Count == 0) return 1.0;
         var veiw = FindChild<PdfDocumentView>(_pdfView);
         var scrollViewer = FindChild<ScrollViewer>(veiw);
-        if (scrollViewer == null) return 1.0;
+        if (scrollViewer == null) return _pdfView.ZoomPercentage;
         var dpi = VisualTreeHelper.GetDpi(_pdfView);
         double pageWidthPoints = _loadedDocument.Pages[0].Size.Width;
         double pageWidthWpf = pageWidthPoints * (96.0 / 72.0) * dpi.DpiScaleY;
@@ -183,10 +183,9 @@ public class OcrOverlayManager
 
     public double GetBoxVerticalOffset(SearchResult result)
     {
-        var rectangles = _overlayCanvas.Children.OfType<Rectangle>().ToList();
+        var rectangle = _overlayCanvas.Children.OfType<Rectangle>().ElementAt(result.BoxIndex);
 
-        var rectangle = rectangles[result.BoxIndex];
-        return (double)rectangle.GetValue(Canvas.TopProperty);
+        return Canvas.GetTop(rectangle);
     }
     public void Recolor(SearchResult result)
     {

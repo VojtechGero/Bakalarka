@@ -60,38 +60,38 @@
                 </Grid>
             </Border>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1">
-                <syncfusion:SfTreeGrid x:Name="FilesTreeGrid"
-                                       ChildPropertyName="SubItems"
-                                       Width="auto"
-                                       AllowFiltering="True"
-                                       AutoExpandMode="None"
-                                       AutoGenerateColumns="False"
-                                       ColumnSizer="Auto"
-                                       AllowResizingColumns="True"
-                                       FontSize="20"
-                                       RowHeight="35"
-                                       ContextMenuOpening="FilesTreeGrid_ContextMenuOpening"
-                                       MouseDoubleClick="FilesTreeGrid_MouseDoubleClick"
-                                       >
-                    <syncfusion:SfTreeGrid.ContextMenu>
-                        <ContextMenu DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                            <MenuItem Header="Kopírovat" Click="CopyMenuItem_Click"/>
-                            <MenuItem Header="Vyjmout" Click="MoveMenuItem_Click"/>
-                            <MenuItem Header="Vložit" Click="PasteMenuItem_Click" Name="PasteMenuItem"/>
-                            <Separator/>
-                            <MenuItem Header="Přejmenovat" Click="RenameMenuItem_Click"/>
-                            <MenuItem Header="Smazat" Click="DeleteMenuItem_Click"/>
-                            <Separator/>
-                            <MenuItem Header="Nová složka" Click="NewFolderMenuItem_Click"/>
-                        </ContextMenu>
-                    </syncfusion:SfTreeGrid.ContextMenu>
-                    <syncfusion:SfTreeGrid.Columns>
-                        <!-- Name Column with a fixed width -->
-                        <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Název"/>
-                        <!-- Path Column with a fixed width -->
-                        <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Cesta"/>
-                    </syncfusion:SfTreeGrid.Columns>
-                </syncfusion:SfTreeGrid>
+                <Grid Name="CenterSegment">
+                    <syncfusion:SfTreeGrid x:Name="FilesTreeGrid"
+                       ChildPropertyName="SubItems"
+                       Width="auto"
+                       AllowFiltering="True"
+                       AutoExpandMode="None"
+                       AutoGenerateColumns="False"
+                       ColumnSizer="Auto"
+                       AllowResizingColumns="True"
+                       FontSize="20"
+                       RowHeight="35"
+                       ContextMenuOpening="FilesTreeGrid_ContextMenuOpening"
+                       MouseDoubleClick="FilesTreeGrid_MouseDoubleClick"
+                       >
+                        <syncfusion:SfTreeGrid.ContextMenu>
+                            <ContextMenu DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                <MenuItem Header="Kopírovat" Click="CopyMenuItem_Click"/>
+                                <MenuItem Header="Vyjmout" Click="MoveMenuItem_Click"/>
+                                <MenuItem Header="Vložit" Click="PasteMenuItem_Click" Name="PasteMenuItem"/>
+                                <Separator/>
+                                <MenuItem Header="Přejmenovat" Click="RenameMenuItem_Click"/>
+                                <MenuItem Header="Smazat" Click="DeleteMenuItem_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Nová složka" Click="NewFolderMenuItem_Click"/>
+                            </ContextMenu>
+                        </syncfusion:SfTreeGrid.ContextMenu>
+                        <syncfusion:SfTreeGrid.Columns>
+                            <syncfusion:TreeGridTextColumn MappingName="Name" HeaderText="Název"/>
+                            <syncfusion:TreeGridTextColumn MappingName="Path" HeaderText="Cesta"/>
+                        </syncfusion:SfTreeGrid.Columns>
+                    </syncfusion:SfTreeGrid>
+                </Grid>
             </ScrollViewer>
         </Grid>
 

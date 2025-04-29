@@ -2,7 +2,9 @@
 using BakalarkaWpf.Services;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace BakalarkaWpf.Views;
 
@@ -23,13 +25,17 @@ public partial class SearchWindow : Window
 
     private async void SearchButton_Click(object sender, RoutedEventArgs e)
     {
+        await search();
+    }
+
+    private async Task search()
+    {
         if (!string.IsNullOrWhiteSpace(SearchTextBox.Text))
         {
             _results = await _searchService.SearchAsync(SearchTextBox.Text);
             ResultsListBox.ItemsSource = _results;
         }
     }
-
     private void ResultsListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (ResultsListBox.SelectedItem is FileResults selectedItem)
@@ -70,6 +76,15 @@ public partial class SearchWindow : Window
                 MessageBox.Show($"Error exporting results: {ex.Message}", "Export Error",
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+    }
+
+    private async void SearchTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+
+            await search();
         }
     }
 }

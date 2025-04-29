@@ -76,7 +76,6 @@ namespace BakalarkaWpf.Views.UserControls
             TreeView.SelectedItems.Clear();
             TreeView.SelectedItems.Add(target);
 
-            // Expand all parent nodes to ensure visibility
             ExpandParentNodes(target);
 
             if (target.IsDirectory)

@@ -100,7 +100,8 @@
             </Border.Effect>
             <StackPanel>
                 <TextBox x:Name="SearchTextBox" 
-                         Width="450" 
+                         Width="450"
+                         KeyDown="SearchTextBox_KeyDown"
                          Margin="0,0,0,10"
                          FontSize="16"/>
                 <StackPanel Orientation="Horizontal" 
@@ -108,21 +109,25 @@
                     <syncfusion:ButtonAdv
                         Label="Hledat"
                         Width="80"
+                        SmallIcon="{x:Null}" 
                         Margin="0,0,10,0"
                         Click="ExecuteSearch_Click"/>
                     <syncfusion:ButtonAdv
                         Label="Další"
                         Width="80"
+                        SmallIcon="{x:Null}" 
                         Margin="0,0,10,0"
                         Click="NextResult_Click"/>
                     <syncfusion:ButtonAdv
                         Label="Minulý"
                         Width="80"
+                        SmallIcon="{x:Null}" 
                         Margin="0,0,10,0"
                         Click="PreviousSearchPanel_Click"/>
                     <syncfusion:ButtonAdv
                         Label="Zavřít"
                         Width="80"
+                        SmallIcon="{x:Null}" 
                         Click="CloseSearchPanel_Click"/>
                 </StackPanel>
                 <TextBlock x:Name="ResultCounter"

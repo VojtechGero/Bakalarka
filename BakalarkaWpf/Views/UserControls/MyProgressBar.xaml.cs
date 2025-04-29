@@ -7,12 +7,18 @@ namespace BakalarkaWpf.Views.UserControls;
 /// </summary>
 public partial class MyProgressBar : UserControl
 {
-    public string filePath { get; set; }
-    public MyProgressBar(string filePath)
+    public string message = "";
+    public MyProgressBar()
     {
         InitializeComponent();
-        this.filePath = filePath;
-        nameLabel.Content = $"Získávání přepisu dokumentu: {filePath}";
+    }
+    public void UpdateMessage(string message)
+    {
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            this.message = message;
+        }
+        nameLabel.Content = this.message;
     }
 
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace BakalarkaWpf.Views.UserControls;
 
@@ -46,11 +47,12 @@ public partial class PdfDisplay : UserControl
 
     private async Task LoadFile(string pdfFilePath)
     {
-        var progressBar = new MyProgressBar(Path.GetFileName(pdfFilePath))
+        var progressBar = new MyProgressBar()
         {
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
+        progressBar.UpdateMessage($"Získávání přepisu dokumentu: {Path.GetFileName(pdfFilePath)}");
         CenterSegment.Children.Add(progressBar);
 
         DocumentLoaded = false;
@@ -60,12 +62,6 @@ public partial class PdfDisplay : UserControl
         addOcrOutput(ocrData.Pages);
         PDFView.Load(doc);
         _ocrOverlayManager = new OcrOverlayManager(PDFView, ocrData, doc);
-        /*
-        await Task.Run(() =>
-        {
-            while (!DocumentLoaded) { }
-        });
-        */
         PDFView.Width = CenterSegment.Width;
         CenterSegment.Children.Remove(progressBar);
         overlayShowed = true;
@@ -100,6 +96,7 @@ public partial class PdfDisplay : UserControl
                 TextWrapping = TextWrapping.Wrap,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Top,
+                IsReadOnly = true,
                 Text = text
             };
             Binding widthBinding = new Binding
@@ -162,6 +159,10 @@ public partial class PdfDisplay : UserControl
 
     private async void ExecuteSearch_Click(object sender, RoutedEventArgs e)
     {
+        await Search();
+    }
+    public async Task Search()
+    {
         var searchTerm = SearchTextBox.Text;
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -170,7 +171,7 @@ public partial class PdfDisplay : UserControl
             if (_results.Count > 0)
             {
                 ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
-                highlightResult();
+                highlightAndScrollToResult();
             }
             else
             {
@@ -185,10 +186,6 @@ public partial class PdfDisplay : UserControl
     }
     public async void openSearchBox(FileResults fileResult)
     {
-        await Task.Run(() =>
-        {
-            while (!DocumentLoaded) { }
-        });
         SearchPanel.Visibility = Visibility.Visible;
         SearchTextBox.Text = fileResult.Query;
         if (!string.IsNullOrWhiteSpace(fileResult.Query))
@@ -198,24 +195,31 @@ public partial class PdfDisplay : UserControl
             if (_results.Count > 0)
             {
                 ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
-                highlightResult();
+                highlightAndScrollToResult();
             }
             else
             {
-                ResultCounter.Text = "No matches found.";
+                ResultCounter.Text = "Nic nebylo nalezeno.";
             }
         }
         else
         {
-            ResultCounter.Text = "Please enter a search term.";
+            ResultCounter.Text = "Zadejte frázi.";
             currentResult = -1;
         }
     }
-    private void highlightResult()
+    private void highlightAndScrollToResult()
     {
         if (currentResult != -1)
         {
-            _ocrOverlayManager.Recolor(_results[currentResult]);
+            var result = _results[currentResult];
+            _ocrOverlayManager.Recolor(result);
+            var position = _ocrOverlayManager.GetBoxVerticalOffset(result);
+            PDFView.ScrollTo(position / ((double)PDFView.ZoomPercentage / 100d) - 200);
+
+            var textbox = (TextBox)OcrOutput.Children[(result.PageNumber - 1) * 2 + 1];
+            textbox.Focus();
+            textbox.Select(result.MatchIndex, result.MatchedText.Length);
         }
     }
     private void NextResult_Click(object sender, RoutedEventArgs e)
@@ -226,8 +230,7 @@ public partial class PdfDisplay : UserControl
         {
             currentResult = 0;
         }
-        PDFView.ScrollTo(_ocrOverlayManager.GetBoxVerticalOffset(_results[currentResult]));
-        highlightResult();
+        highlightAndScrollToResult();
         ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
     }
 
@@ -244,8 +247,15 @@ public partial class PdfDisplay : UserControl
         {
             currentResult = _results.Count - 1;
         }
-        PDFView.ScrollTo(_ocrOverlayManager.GetBoxVerticalOffset(_results[currentResult]));
-        highlightResult();
+        highlightAndScrollToResult();
         ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
+    }
+
+    private async void SearchTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            await Search();
+        }
     }
 }
