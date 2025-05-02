@@ -66,9 +66,4 @@ public partial class MainPage : Page
         mainGrid.Children.Add(_dms);
         _dms.UpdateFolderTreeView();
     }
-
-
-
-
-
 }

@@ -22,15 +22,22 @@ public partial class PdfDisplay : UserControl
     private OcrOverlayManager _ocrOverlayManager;
     private ApiSearchService _searchService;
     private ApiFileService _fileService;
-    private bool DocumentLoaded = false;
-    private bool overlayShowed = false;
+    private bool _isOverlayShown = false;
     public EventHandler BackButtonPressed;
-    private int currentResult = -1;
-    private List<SearchResult> _results = new List<SearchResult>();
+    private int _currentSearchResultIndex = -1;
+    private List<SearchResult> _searchResults = new();
     public PdfDisplay(FileItem fileItem)
     {
         InitializeComponent();
-        this._fileItem = fileItem;
+        _fileItem = fileItem;
+        InitializePdfViewerSettings();
+
+        _searchService = new ApiSearchService();
+        _fileService = new ApiFileService();
+    }
+
+    private void InitializePdfViewerSettings()
+    {
         PDFView.ToolbarSettings.ShowZoomTools = false;
         PDFView.ToolbarSettings.ShowFileTools = false;
         PDFView.ToolbarSettings.ShowAnnotationTools = false;
@@ -41,88 +48,83 @@ public partial class PdfDisplay : UserControl
         PDFView.EnableRedactionTool = false;
         PDFView.FormSettings.IsIconVisible = false;
         PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
-        _searchService = new ApiSearchService();
-        _fileService = new ApiFileService();
     }
 
-    private async Task LoadFile(string pdfFilePath)
+
+    private async Task LoadDocumentAsync(string pdfFilePath)
     {
-        var progressBar = new MyProgressBar()
+        var progressBar = new MyProgressBar
         {
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        progressBar.UpdateMessage($"Získávání přepisu dokumentu: {Path.GetFileName(pdfFilePath)}");
+        progressBar.UpdateMessage($"Načítání dokumentu: {Path.GetFileName(pdfFilePath)}");
         CenterSegment.Children.Add(progressBar);
 
-        DocumentLoaded = false;
-        var stream = await _fileService.GetFileAsync(pdfFilePath);
-        PdfLoadedDocument doc = new PdfLoadedDocument(stream);
-        Pdf ocrData = await PerformOcrOnPdf(pdfFilePath, 0, 0);
-        addOcrOutput(ocrData.Pages);
-        PDFView.Load(doc);
-        _ocrOverlayManager = new OcrOverlayManager(PDFView, ocrData, doc);
-        PDFView.Width = CenterSegment.Width;
-        CenterSegment.Children.Remove(progressBar);
-        overlayShowed = true;
+        try
+        {
+            var stream = await _fileService.GetFileAsync(pdfFilePath);
+            var document = new PdfLoadedDocument(stream);
+            var ocrData = await GetOcrDataAsync(pdfFilePath);
 
+            PDFView.Load(document);
+            UpdateOcrResultsPanel(ocrData.Pages);
+
+            _ocrOverlayManager = new OcrOverlayManager(PDFView, ocrData, document);
+        }
+        finally
+        {
+            CenterSegment.Children.Remove(progressBar);
+            _isOverlayShown = true;
+        }
     }
-    private async Task<Pdf> PerformOcrOnPdf(string pdfFilePath, int height, int width)
+    private async Task<Pdf> GetOcrDataAsync(string pdfFilePath)
     {
         try
         {
-            return await _fileService.GetOcrAsync(pdfFilePath, height, width);
+            return await _fileService.GetOcrAsync(pdfFilePath, 0, 0);
         }
         catch (Exception ex)
         {
             Application.Current.Dispatcher.Invoke(() =>
-            {
-                MessageBox.Show(ex.Message);
-                Clipboard.SetText(ex.Message);
-            });
+                MessageBox.Show($"Chyba OCR: {ex.Message}"));
+            return null;
         }
-        return null;
     }
-    public void addOcrOutput(List<OcrPage> pages)
+    private void UpdateOcrResultsPanel(IEnumerable<OcrPage> pages)
     {
         OcrOutput.Children.Clear();
-        foreach (OcrPage page in pages)
+
+        foreach (var page in pages)
         {
-            string text = string.Join("\n", page.OcrBoxes.Select(x => x.Text));
+            var pageText = string.Join("\n", page.OcrBoxes.Select(b => b.Text));
+
+            OcrOutput.Children.Add(new Label { Content = $"Strana {page.pageNum}" });
+
             var textBox = new TextBox
             {
-                Height = double.NaN,
-                Width = double.NaN,
                 TextWrapping = TextWrapping.Wrap,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Top,
                 IsReadOnly = true,
-                Text = text
+                Text = pageText
             };
-            Binding widthBinding = new Binding
+
+            textBox.SetBinding(WidthProperty, new Binding("ActualWidth")
             {
                 Source = OcrOutput,
-                Path = new PropertyPath("ActualWidth"),
                 Mode = BindingMode.OneWay
-            };
-            textBox.SetBinding(TextBox.WidthProperty, widthBinding);
-            var label = new Label
-            {
-                Content = $"Strana {page.pageNum}"
-            };
-            OcrOutput.Children.Add(label);
+            });
+
             OcrOutput.Children.Add(textBox);
         }
     }
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        LoadFile(_fileItem.Path);
+        LoadDocumentAsync(_fileItem.Path);
     }
 
     private void PDFView_ZoomChanged(object sender, Syncfusion.Windows.PdfViewer.ZoomEventArgs args)
     {
-        PDFView.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitWidth;
         _ocrOverlayManager?.zoomChanged();
     }
 
@@ -131,10 +133,9 @@ public partial class PdfDisplay : UserControl
         _ocrOverlayManager?.HandleScroll(args);
     }
 
-
     private void OcrButton_Click(object sender, RoutedEventArgs e)
     {
-        if (overlayShowed)
+        if (_isOverlayShown)
         {
             _ocrOverlayManager?.HideOverlay();
         }
@@ -142,7 +143,7 @@ public partial class PdfDisplay : UserControl
         {
             _ocrOverlayManager?.ShowOverlay();
         }
-        overlayShowed = !overlayShowed;
+        _isOverlayShown = !_isOverlayShown;
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -151,68 +152,33 @@ public partial class PdfDisplay : UserControl
     }
 
 
-    private void SearchButton_Click(object sender, RoutedEventArgs e)
+
+    private async Task PerformSearchAsync()
     {
-        SearchPanel.Visibility = Visibility.Visible;
-        SearchTextBox.Focus();
+        var searchTerm = SearchTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(searchTerm)) return;
+
+        _searchResults = await _searchService.GetFileResults(searchTerm, _fileItem.Path);
+        _currentSearchResultIndex = _searchResults.Count > 0 ? 0 : -1;
+        UpdateSearchResultsDisplay();
+    }
+    private void UpdateSearchResultsDisplay()
+    {
+        if (_currentSearchResultIndex == -1)
+        {
+            ResultCounter.Text = "Nenalezeny žádné výsledky";
+            return;
+        }
+        ResultCounter.Text = $"Výsledek {_currentSearchResultIndex + 1} z {_searchResults.Count}";
+        HighlightAndScrollToCurrentResult();
     }
 
-    private async void ExecuteSearch_Click(object sender, RoutedEventArgs e)
+
+    private void HighlightAndScrollToCurrentResult()
     {
-        await Search();
-    }
-    public async Task Search()
-    {
-        var searchTerm = SearchTextBox.Text;
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        if (_currentSearchResultIndex != -1)
         {
-            _results = await _searchService.GetFileResults(searchTerm, this._fileItem.Path);
-            currentResult = 0;
-            if (_results.Count > 0)
-            {
-                ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
-                highlightAndScrollToResult();
-            }
-            else
-            {
-                ResultCounter.Text = "No matches found.";
-            }
-        }
-        else
-        {
-            ResultCounter.Text = "Please enter a search term.";
-            currentResult = -1;
-        }
-    }
-    public async void openSearchBox(FileResults fileResult)
-    {
-        SearchPanel.Visibility = Visibility.Visible;
-        SearchTextBox.Text = fileResult.Query;
-        if (!string.IsNullOrWhiteSpace(fileResult.Query))
-        {
-            _results = await _searchService.GetFileResults(fileResult.Query, this._fileItem.Path);
-            currentResult = 0;
-            if (_results.Count > 0)
-            {
-                ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
-                highlightAndScrollToResult();
-            }
-            else
-            {
-                ResultCounter.Text = "Nic nebylo nalezeno.";
-            }
-        }
-        else
-        {
-            ResultCounter.Text = "Zadejte frázi.";
-            currentResult = -1;
-        }
-    }
-    private void highlightAndScrollToResult()
-    {
-        if (currentResult != -1)
-        {
-            var result = _results[currentResult];
+            var result = _searchResults[_currentSearchResultIndex];
             _ocrOverlayManager.Recolor(result);
             var position = _ocrOverlayManager.GetBoxVerticalOffset(result);
             PDFView.ScrollTo(position / ((double)PDFView.ZoomPercentage / 100d) - 200);
@@ -222,40 +188,64 @@ public partial class PdfDisplay : UserControl
             textbox.Select(result.MatchIndex, result.MatchedText.Length);
         }
     }
+    private void SearchButton_Click(object sender, RoutedEventArgs e)
+    {
+        SearchPanel.Visibility = Visibility.Visible;
+        SearchTextBox.Focus();
+    }
+    private async void ExecuteSearch_Click(object sender, RoutedEventArgs e)
+    {
+        await PerformSearchAsync();
+    }
     private void NextResult_Click(object sender, RoutedEventArgs e)
     {
-        currentResult++;
-
-        if (currentResult == _results.Count)
-        {
-            currentResult = 0;
-        }
-        highlightAndScrollToResult();
-        ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
+        NavigateToSearchResult(1);
     }
-
+    private void PreviousSearchPanel_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToSearchResult(-1);
+    }
     private void CloseSearchPanel_Click(object sender, RoutedEventArgs e)
     {
         SearchPanel.Visibility = Visibility.Collapsed;
+        _ocrOverlayManager.ClearColors();
     }
-
-    private void PreviousSearchPanel_Click(object sender, RoutedEventArgs e)
-    {
-        currentResult--;
-
-        if (currentResult == -1)
-        {
-            currentResult = _results.Count - 1;
-        }
-        highlightAndScrollToResult();
-        ResultCounter.Text = $"Výsledek {currentResult + 1} z {_results.Count}";
-    }
-
     private async void SearchTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key == Key.Enter)
         {
-            await Search();
+            await PerformSearchAsync();
         }
+    }
+    public async void openSearchBox(FileResults fileResult)
+    {
+        SearchPanel.Visibility = Visibility.Visible;
+        SearchTextBox.Text = fileResult.Query;
+        if (!string.IsNullOrWhiteSpace(fileResult.Query))
+        {
+            _searchResults = await _searchService.GetFileResults(fileResult.Query, this._fileItem.Path);
+            _currentSearchResultIndex = 0;
+            if (_searchResults.Count > 0)
+            {
+                ResultCounter.Text = $"Výsledek {_currentSearchResultIndex + 1} z {_searchResults.Count}";
+                HighlightAndScrollToCurrentResult();
+            }
+            else
+            {
+                ResultCounter.Text = "Nic nebylo nalezeno.";
+            }
+        }
+        else
+        {
+            ResultCounter.Text = "Zadejte frázi.";
+            _currentSearchResultIndex = -1;
+        }
+    }
+    private void NavigateToSearchResult(int direction)
+    {
+        if (_searchResults.Count == 0) return;
+
+        _currentSearchResultIndex = (_currentSearchResultIndex + direction + _searchResults.Count) % _searchResults.Count;
+        UpdateSearchResultsDisplay();
     }
 }

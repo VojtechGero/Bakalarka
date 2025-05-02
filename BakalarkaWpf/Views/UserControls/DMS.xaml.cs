@@ -222,7 +222,7 @@ public partial class DMS : UserControl
         }
         else
         {
-            MessageBox.Show("Some items couldn't be deleted.");
+            MessageBox.Show("Položku nebylo možné smazat.");
         }
     }
 
@@ -246,7 +246,7 @@ public partial class DMS : UserControl
 
     private async void NewFolderMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new InputDialog("Folder name:", "New Folder");
+        var dialog = new InputDialog("Název složky:", "Nová složka");
         if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.ResponseText))
         {
             string newPath = Path.Combine(_currentHead.Path, dialog.ResponseText);
@@ -255,11 +255,12 @@ public partial class DMS : UserControl
             if (success)
             {
                 await UpdateItems(_currentHead.Path);
-                FolderTreeControl.Update();
+                await FolderTreeControl.Update();
+                FolderTreeControl.SetSelectedItem(_currentHead);
             }
             else
             {
-                MessageBox.Show("Folder creation failed.");
+                MessageBox.Show("Vytváření složky selhalo.");
             }
         }
     }
@@ -282,8 +283,8 @@ public partial class DMS : UserControl
         {
             await UpdateItems(_currentHead.Path);
             await FolderTreeControl.Update();
-            FolderTreeControl.SetSelectedItem(_currentHead);
             _clipboardPaths.Clear();
+            FolderTreeControl.SetSelectedItem(_currentHead);
         }
         else
         {

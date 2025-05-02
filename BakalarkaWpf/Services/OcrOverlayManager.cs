@@ -1,5 +1,7 @@
 ﻿using BakalarkaWpf.Models;
+using Syncfusion.Data.Extensions;
 using Syncfusion.Pdf.Parsing;
+using Syncfusion.UI.Xaml.Diagram;
 using Syncfusion.Windows.PdfViewer;
 using System.Linq;
 using System.Windows;
@@ -17,7 +19,6 @@ public class OcrOverlayManager
     private readonly PdfLoadedDocument _loadedDocument;
     private double _horizontalOffset;
     private double _verticalOffset;
-    private double _totalDocumentHeight;
     private double _pageGap = 2.2;
     private Rect _clientRect;
     private double _viewportWidth;
@@ -52,7 +53,6 @@ public class OcrOverlayManager
         _overlayCanvas.Margin = new Thickness(_clientRect.Left, 0, 0, 0);
         _viewportWidth = _clientRect.Width;
         _viewportHeight = _clientRect.Height;
-        CalculateDocumentHeight();
         RenderAllPages();
     }
 
@@ -134,20 +134,6 @@ public class OcrOverlayManager
         }
         return null;
     }
-    private void CalculateDocumentHeight()
-    {
-        double sum = 0;
-        double zoomFactor = GetActualZoomFactor();
-        for (int i = 0; i < _loadedDocument.Pages.Count; i++)
-        {
-            sum += (_loadedDocument.Pages[i].Size.Height * (96.0 / 72.0) * zoomFactor) + _pageGap;
-        }
-        _totalDocumentHeight = sum;
-    }
-
-
-
-
     public void HandleScroll(ScrollChangedEventArgs args)
     {
         _horizontalOffset = args.HorizontalOffset;
@@ -175,11 +161,6 @@ public class OcrOverlayManager
         );
     }
 
-    public void UpdateOverlayOnViewChanged()
-    {
-        CalculateDocumentHeight();
-        RenderAllPages();
-    }
 
     public double GetBoxVerticalOffset(SearchResult result)
     {
@@ -204,6 +185,14 @@ public class OcrOverlayManager
                 rectangles[i].Stroke = Brushes.Blue;
             }
         }
+    }
+    public void ClearColors()
+    {
+        _overlayCanvas.Children.OfType<Rectangle>().ForEach(x =>
+        {
+            x.Stroke = Brushes.Blue;
+            x.Fill = new SolidColorBrush(Colors.Blue) { Opacity = 0.2 };
+        });
     }
     private static T FindChild<T>(DependencyObject parent) where T : DependencyObject
     {
