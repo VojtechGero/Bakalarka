@@ -28,7 +28,6 @@ public class ApiSearchService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in SearchAsync: {ex.Message}");
             return new List<FileResults>();
         }
     }
@@ -52,7 +51,6 @@ public class ApiSearchService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in GetFileResults: {ex.Message}");
             return new List<SearchResult>();
         }
     }

@@ -68,12 +68,12 @@ public partial class SearchWindow : Window
                 var exportService = new ExcelExportService();
                 exportService.ExportToExcel(_results, saveFileDialog.FileName);
 
-                MessageBox.Show("Results exported successfully!", "Export Complete",
+                MessageBox.Show("Výsledky úspěšně exportovány!", "Export dokončen",
                                MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error exporting results: {ex.Message}", "Export Error",
+                MessageBox.Show($"Výsledky nebylo možné exportovat", "Export Error",
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

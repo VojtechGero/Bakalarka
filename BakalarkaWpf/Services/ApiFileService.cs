@@ -26,7 +26,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in GetTopLevelItems: {ex.Message}");
             return new List<FileItem>();
         }
     }
@@ -40,7 +39,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in GetTopLevelItems: {ex.Message}");
             return null;
         }
     }
@@ -50,7 +48,6 @@ public class ApiFileService
         {
             if (!File.Exists(localFilePath))
             {
-                Console.WriteLine("File not found.");
                 return false;
             }
 
@@ -65,18 +62,15 @@ public class ApiFileService
 
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine("File uploaded successfully.");
                 return true;
             }
             else
             {
-                Console.WriteLine($"Upload failed with status code: {response.StatusCode}");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error uploading file: {ex.Message}");
             return false;
         }
     }
@@ -98,7 +92,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in GetOcrAsync: {ex.Message}");
             return null;
         }
     }
@@ -112,7 +105,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error copying item: {ex.Message}");
             return false;
         }
     }
@@ -127,7 +119,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error moving item: {ex.Message}");
             return false;
         }
     }
@@ -142,7 +133,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error deleting item: {ex.Message}");
             return false;
         }
     }
@@ -162,7 +152,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating folder: {ex.Message}");
             return false;
         }
     }
@@ -176,7 +165,6 @@ public class ApiFileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error renaming item: {ex.Message}");
             return false;
         }
     }

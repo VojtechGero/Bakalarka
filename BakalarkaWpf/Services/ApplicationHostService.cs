@@ -1,13 +1,11 @@
-﻿using System;
+﻿using BakalarkaWpf.Contracts.Services;
+using BakalarkaWpf.Contracts.Views;
+using BakalarkaWpf.ViewModels;
+using Microsoft.Extensions.Hosting;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using BakalarkaWpf.Contracts.Services;
-using BakalarkaWpf.Contracts.Views;
-using BakalarkaWpf.ViewModels;
-
-using Microsoft.Extensions.Hosting;
 
 namespace BakalarkaWpf.Services
 {
@@ -25,12 +23,10 @@ namespace BakalarkaWpf.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            // Initialize services that you need before app activation
             await InitializeAsync();
 
             await HandleActivationAsync();
 
-            // Tasks after activation
             await StartupAsync();
         }
 
